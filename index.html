@@ -347,6 +347,11 @@ body::before{background:var(--head)!important}
 .uGo{width:100%;padding:14px;font-size:16px}
 .uNow{background:var(--panel2);border-radius:12px;padding:10px 14px;min-height:76px;display:grid;gap:2px;align-content:start}
 .uNow .label{color:var(--accent)}
+.uAlgTag{display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%}
+.uAlgTag span{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.uAlgTag b{font-size:16px;padding:3px 10px;border-radius:999px;background:var(--accent);color:#fff}
+.uAlgTag b.plain{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+.uAlgTag button{font-size:13px;padding:3px 10px}
 .uNow p{margin:0;font-weight:600;font-size:15px}
 .uPlay .stage canvas{width:min(330px,80vw,44vh)}
 .uCtrl{display:grid;grid-template-columns:auto auto 1fr auto auto;gap:8px}
@@ -2667,6 +2672,30 @@ function solveNow(){
   sim.i=0;var v=uView();v.fit();v.set(C.apply(C.newCube(),uScr));
   renderTimeline();paintSim();renderCompare(r);
 }
+var ALGN=(function(){
+  var m={};function k(a){return a.replace(/[()]/g,' ').trim().split(/\s+/).join(' ');}
+  A.forEach(function(a){if(a.set!=='pairs')m[k(a.alg)]={n:a.name,id:a.id};});
+  [["R U' R U R U R U' R' U' R2",'Ua','ua'],["R2 U R U R' U' R' U' R' U R'",'Ub','ub'],
+   ["U R U' R' U' F' U F",'Edge to the right'],["U' L' U L U F U' F'",'Edge to the left'],
+   ["R U R' U R U2 R' U",'Match edges (Sune + U)'],["U R U' L' U R' U' L",'Niklas (place corners)'],
+   ["R U R'",'3-move insert'],["F' U' F",'3-move insert, mirror'],["R U' R'",'3-move, other way'],["F' U F",'3-move mirror, other way'],
+   ["R U2 R'",'Hide with R U2 R\''],["F' U2 F",'Hide with F\' U2 F'],["R U2 R' U' R U R'",'White on top fix']
+  ].forEach(function(x){m[k(x[0])]={n:x[1],id:x[2]};});
+  m[k("F R U R' U' F'")]={n:'Yellow cross alg',id:'line'};
+  return function(g){
+    var mv=k(g.moves),t=mv.split(' ');
+    if(g.stage==='oll1'&&m[mv]){var x=BY[m[mv].id];return {n:x?x.name:m[mv].n,id:m[mv].id};}
+    if(m[mv])return m[mv];
+    var reps=[["R U R' U'",'R U R\' U\''],["R' D' R D",'R\' D\' R D']];
+    for(var i=0;i<reps.length;i++){var b=reps[i][0].split(' ');if(t.length%4===0&&t.length>=4){var ok=true;for(var j=0;j<t.length;j++)if(t[j]!==b[j%4]){ok=false;break;}if(ok)return {n:reps[i][1]+(t.length>4?' ×'+(t.length/4):'')};}}
+    if(t.every(function(x){return /^[xyz]/.test(x);}))return {n:'Turn the whole cube',plain:1};
+    if(t.length===1&&/^U/.test(t[0]))return {n:'Turn the top layer',plain:1};
+    if(t.length===1&&/^D/.test(t[0]))return {n:'Turn the bottom layer',plain:1};
+    if(/cross|daisy/.test(g.stage))return {n:'Cross moves (no algorithm)',plain:1};
+    if(g.stage==='f2l')return {n:'Pair moves (no algorithm)',plain:1};
+    return {n:'Free moves',plain:1};
+  };
+})();
 function segAt(i){return i<sim.flat.length?sim.flat[i].s:sim.segs.length;}
 function cubeAtI(i){var c=C.apply(C.newCube(),uScr);for(var k=0;k<i;k++)C.apply(c,sim.flat[k].m);return c;}
 function paintSim(){
@@ -2674,7 +2703,7 @@ function paintSim(){
   document.getElementById('uStage').textContent=si>=sim.segs.length?'Solved':STAGE[g.stage]||g.stage;
   document.getElementById('uSay').textContent=si>=sim.segs.length?'Done in '+cntAll()+' moves. Try another method on the same scramble to compare.':g.label;
   var start=0;for(var k=0;k<sim.flat.length&&sim.flat[k].s<si;k++)start=k+1;
-  document.getElementById('uMoves').innerHTML=g?'<span class="ch">'+g.moves.split(' ').filter(Boolean).map(function(m,j){var idx=start+j;return '<button data-ui="'+idx+'" class="'+(idx<sim.i?'done':idx===sim.i?'cur':'')+'">'+m+'</button>';}).join('')+'</span>':'';
+  var an=g?ALGN(g):null;document.getElementById('uMoves').innerHTML=g?'<div class="uAlgTag"><span>Algorithm</span><b'+(an.plain?' class="plain"':'')+'>'+esc(an.n)+'</b>'+(an.id&&BY[an.id]?'<button class="small" data-uw="'+an.id+'">See card</button>':'')+'</div><span class="ch">'+g.moves.split(' ').filter(Boolean).map(function(m,j){var idx=start+j;return '<button data-ui="'+idx+'" class="'+(idx<sim.i?'done':idx===sim.i?'cur':'')+'">'+m+'</button>';}).join('')+'</span>':'';
   document.getElementById('uPlayBtn').textContent=sim.playing?'Pause':(sim.i>=n?'Replay':'Play');
   document.getElementById('uCount').textContent='Move '+Math.min(sim.i,n)+' of '+n;
   document.querySelectorAll('#uSpeed button').forEach(function(b){b.setAttribute('aria-pressed',+b.dataset.s===sim.speed);});
@@ -2685,7 +2714,7 @@ function cntAll(){return sim.flat.filter(function(x){return !/^[xyz]/.test(x.m);
 function groups(){var out=[],cur=null;sim.flat.forEach(function(x,k){var name=STAGE[sim.segs[x.s].stage];if(!cur||cur.name!==name){cur={name:name,start:k,end:k+1,moves:0};out.push(cur);}cur.end=k+1;if(!/^[xyz]/.test(x.m))cur.moves++;});return out;}
 function renderTimeline(){document.getElementById('uTimeline').innerHTML=groups().map(function(g,j){return '<button class="uTl" data-ug="'+g.start+'"><span>'+g.name+'</span><b>'+g.moves+' moves</b></button>';}).join('');}
 document.getElementById('uTimeline').addEventListener('click',function(e){var b=e.target.closest('[data-ug]');if(!b||uView().busy)return;stopSim();sim.i=+b.dataset.ug;uView().set(cubeAtI(sim.i));paintSim();});
-document.getElementById('uMoves').addEventListener('click',function(e){var b=e.target.closest('[data-ui]');if(!b||uView().busy)return;stopSim();sim.i=+b.dataset.ui;uView().set(cubeAtI(sim.i));paintSim();});
+document.getElementById('uMoves').addEventListener('click',function(e){var w=e.target.closest('[data-uw]');if(w){stopSim();paintSim();openPlayer(BY[w.dataset.uw]);return;}var b=e.target.closest('[data-ui]');if(!b||uView().busy)return;stopSim();sim.i=+b.dataset.ui;uView().set(cubeAtI(sim.i));paintSim();});
 function uDur(){return 480/sim.speed;}
 function fwd(){if(sim.i>=sim.flat.length||uView().busy)return Promise.resolve(false);var m=sim.flat[sim.i].m;return uView().turn(m,uDur()).then(function(){sim.i++;paintSim();return true;});}
 function back(){if(sim.i<=0||uView().busy)return Promise.resolve(false);sim.i--;paintSim();return uView().turn(C.invert(sim.flat[sim.i].m),uDur()).then(function(){paintSim();return true;});}
