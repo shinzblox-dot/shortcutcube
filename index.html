@@ -1,0 +1,2721 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>[hidden]{display:none!important}</style></head><body>
+<title>Shortcut Cubing</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column of stacked sections under a sticky tab bar; cards grid for algorithms; one-screen timer pad. */
+:root{
+  --bg:#ECEFF4; --panel:#FFFFFF; --panel2:#F5F7FA; --ink:#121722; --mute:#566072; --line:#D6DBE4;
+  --accent:#1D4FE0; --accent-ink:#FFFFFF; --hi:#FFC81E; --ok:#14945A; --bad:#D63B32;
+  --off:#C3C9D3; --body:#1B1F27; --chip:#E3E8F0; --head:#0F1B3D;
+  --f-display:"Unbounded","Arial Black",system-ui,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C0F15; --panel:#151922; --panel2:#1B202B; --ink:#EEF1F6; --mute:#9AA4B5; --line:#272E3B;
+  --accent:#6B93FF; --accent-ink:#0C0F15; --hi:#FFD23F; --ok:#3CC983; --bad:#FF6B61;
+  --off:#3B4352; --body:#07090D; --chip:#222937; --head:#0A1022; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C0F15; --panel:#151922; --panel2:#1B202B; --ink:#EEF1F6; --mute:#9AA4B5; --line:#272E3B;
+  --accent:#6B93FF; --accent-ink:#0C0F15; --hi:#FFD23F; --ok:#3CC983; --bad:#FF6B61;
+  --off:#3B4352; --body:#07090D; --chip:#222937; --head:#0A1022; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--f-body);margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--panel)}
+.wrap{max-width:1480px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.chip:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+.mono{font-family:var(--f-mono)}
+.label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+
+/* top bar */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--panel);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:14px;padding-block:10px;min-width:0}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:17px;white-space:nowrap}
+.logo svg{width:26px;height:26px;flex:none}
+nav{display:flex;gap:4px;margin-left:auto;overflow-x:auto;scrollbar-width:none;min-width:0}
+nav::-webkit-scrollbar{display:none}
+nav button{border:0;background:transparent;padding:8px 12px;border-radius:10px;font-weight:600;color:var(--mute);white-space:nowrap}
+nav button[aria-current="page"]{background:var(--ink);color:var(--bg)}
+nav .sm{display:none}
+@media (max-width:560px){nav .lg{display:none}nav .sm{display:inline}}
+@media (max-width:560px){.logo span{display:none} nav{margin-left:0;flex:1;justify-content:space-between} nav button{padding:8px 10px;font-size:15px}}
+
+main{padding-block:24px 64px}
+section[data-tab]{display:grid;gap:28px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.25fr 1fr;gap:24px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:28px}
+.hero h1{font-size:clamp(34px,6vw,58px);line-height:1.02;font-weight:800}
+.hero h1 em{font-style:normal;background:var(--hi);color:#121722;padding:0 .14em;border-radius:.12em}
+.hero p{color:var(--mute);max-width:46ch;margin:14px 0 0;font-size:17px}
+.hero .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-weight:700;background:var(--chip)}
+.btn.pri{background:var(--accent);color:var(--accent-ink)}
+.btn.ok{background:var(--ok);color:#fff}
+.btn.bad{background:var(--bad);color:#fff}
+.heroCube{display:grid;justify-items:center;gap:6px;min-width:0}
+.heroCube .mono{font-size:13px;color:var(--mute);text-align:center;min-height:2.6em}
+@media (max-width:720px){.hero{grid-template-columns:1fr;padding:22px}.heroCube{order:-1}.heroCube canvas{width:170px}}
+
+.prog{display:grid;gap:8px}
+.prog .track{height:10px;border-radius:99px;background:var(--chip);overflow:hidden}
+.prog .fill{height:100%;background:var(--ok);width:0;transition:width .4s}
+.prog .row{display:flex;justify-content:space-between;font-weight:600;font-size:14px;color:var(--mute);font-variant-numeric:tabular-nums}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:860px){.steps{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:440px){.steps{grid-template-columns:1fr}}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:8px;align-content:start;text-align:left}
+.step .n{font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1}
+.step h3{font-size:16px}
+.step p{margin:0;color:var(--mute);font-size:14.5px}
+.step .meta{font-size:13px;font-weight:700;color:var(--accent)}
+button.step:hover{border-color:var(--accent)}
+
+.secHead{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.secHead h2{font-size:22px}
+.secHead p{margin:4px 0 0;color:var(--mute)}
+
+/* shortcuts */
+.shorts{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.short{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:6px;align-content:start}
+.short b{font-size:15.5px}
+.short p{margin:0;color:var(--mute);font-size:14.5px}
+.short .mono{font-size:13.5px;background:var(--panel2);border-radius:8px;padding:6px 8px;overflow-wrap:anywhere}
+.short .gain{font-size:12px;font-weight:800;color:var(--ok);letter-spacing:.06em;text-transform:uppercase}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:720px){.two{grid-template-columns:1fr}}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:10px;align-content:start}
+.box h3{font-size:16px}
+.box ul,.box ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.box p{margin:0}
+.notes{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:14.5px}
+.notes .mono{font-weight:700}
+.timeline{display:grid;gap:8px}
+.timeline div{display:grid;grid-template-columns:86px 1fr;gap:10px;align-items:baseline;font-size:14.5px}
+.timeline b{font-family:var(--f-mono);font-size:14px}
+
+/* chips */
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:7px 14px;font-weight:600;font-size:14px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* alg cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:grid;grid-template-columns:96px 1fr;gap:12px 14px;align-content:start;position:relative}
+.card[data-status="know"]{border-color:color-mix(in srgb,var(--ok) 55%,var(--line))}
+.card .pic svg{width:96px;height:96px;display:block}
+.card .info{display:grid;gap:4px;min-width:0;align-content:start}
+.card h3{font-size:15px;font-family:var(--f-body);font-weight:700;letter-spacing:0}
+.card .see{font-size:13.5px;color:var(--mute);margin:0}
+.card .alg{grid-column:1/-1;font-family:var(--f-mono);font-weight:700;font-size:15px;background:var(--panel2);border-radius:10px;padding:9px 11px;overflow-wrap:anywhere;line-height:1.55}
+.card .alg i{font-style:normal;color:var(--mute);font-weight:500}
+.free{display:block;font-size:13px;font-weight:700;color:var(--ok);line-height:1.35}
+.card .tip{grid-column:1/-1;font-size:13.5px;color:var(--mute);margin:-4px 0 0}
+.card .act{grid-column:1/-1;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-left:auto}
+.seg button{border:0;background:transparent;padding:6px 10px;font-size:13px;font-weight:700;color:var(--mute)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg button[data-v="know"][aria-pressed="true"]{background:var(--ok);color:#fff}
+.small{border:0;background:var(--chip);border-radius:10px;padding:6px 12px;font-weight:700;font-size:13px}
+.groupHead{grid-column:1/-1;display:grid;gap:2px;margin-top:10px}
+.groupHead h2{font-size:19px}
+.groupHead p{margin:0;color:var(--mute);font-size:14.5px}
+
+/* stickers */
+.s-y{fill:#FFD500}.s-w{fill:#FFFFFF}.s-g{fill:#06A04F}.s-b{fill:#1259D9}.s-r{fill:#D8262D}.s-o{fill:#FF7B00}
+.s-x{fill:var(--off)}.s-body{fill:var(--body)}
+.arrow{stroke:var(--ink);stroke-width:2.4;fill:none;stroke-linecap:round}
+
+/* player */
+.sheet{position:fixed;inset:0;z-index:20;background:color-mix(in srgb,var(--body) 60%,transparent);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet .in{background:var(--panel);border-radius:20px;width:min(520px,100%);max-height:100%;overflow:auto;padding:20px;display:grid;gap:14px}
+.sheet .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sheet h3{font-size:18px}
+.x{border:0;background:var(--chip);width:38px;height:38px;border-radius:50%;font-size:20px;line-height:1;flex:none}
+.stage{position:relative;display:grid;place-items:center;background:var(--panel2);border-radius:16px;padding:6px}
+.stage canvas{width:min(320px,74vw,46vh);aspect-ratio:1;max-width:100%;touch-action:none;cursor:grab;display:block}
+.stage canvas:active{cursor:grabbing}
+.dragHint{font-size:12px;color:var(--mute);padding-bottom:4px}
+.now{display:flex;align-items:center;gap:12px;min-height:52px;background:var(--panel2);border-radius:14px;padding:8px 14px}
+.now b{flex:none;white-space:nowrap;font-size:28px;min-width:2.4em;text-align:center;background:var(--hi);color:#121722;border-radius:10px;padding:2px 8px;line-height:1.3}
+.now span{font-size:15.5px;font-weight:600}
+.moves{display:flex;flex-wrap:wrap;gap:10px 14px}
+.moves .ch{display:flex;gap:4px;flex-wrap:wrap}
+.moves button{font-family:var(--f-mono);font-weight:700;font-size:15px;padding:5px 8px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);min-width:2.5em;text-align:center}
+.moves button.done{color:var(--mute);background:transparent}
+.moves button.cur{background:var(--hi);color:#121722;border-color:var(--hi)}
+.ctrl{display:grid;grid-template-columns:auto auto 1fr auto;gap:8px}
+.ctrl .btn{padding:12px 16px;font-size:16px}
+.ctrl2{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.ctrl2 .seg{margin-left:0}
+.ctrl2 .seg button{padding:8px 12px}
+.loop{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14.5px;cursor:pointer}
+.loop input{width:18px;height:18px;accent-color:var(--accent)}
+.keys{margin:0;font-size:12.5px;color:var(--mute);text-align:center}
+@media (hover:none){.keys{display:none}}
+.heroCube canvas{width:min(270px,100%);aspect-ratio:1;touch-action:none;cursor:grab;display:block}
+
+/* practice */
+.flash{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:22px;display:grid;justify-items:center;gap:14px;text-align:center;max-width:560px;width:100%;margin:0 auto}
+.flash .pic svg{width:180px;height:180px}
+.flash .ans{font-family:var(--f-mono);font-weight:700;font-size:19px;background:var(--panel2);border-radius:12px;padding:12px 14px;overflow-wrap:anywhere;width:100%}
+.flash .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.flash .score{font-size:14px;color:var(--mute);font-variant-numeric:tabular-nums}
+.flash h3{font-size:19px}
+
+/* timer (csTimer-style) */
+.tmr{display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.tmr{grid-template-columns:1fr}.tside{order:2}}
+.tside{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:grid;gap:10px;min-width:0}
+@media (min-width:901px){.tside{position:sticky;top:calc(env(safe-area-inset-top,0px) + 70px);max-height:calc(100vh - 90px);grid-template-rows:auto auto auto minmax(0,1fr)}}
+.trow{display:flex;gap:6px;min-width:0}
+.trow select{flex:1;min-width:0}
+select,.tin{font:inherit;font-weight:600;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+.tstats th,.tstats td{padding:4px 6px;text-align:right;font-size:14px;border-bottom:1px solid var(--line)}
+.tstats th:first-child,.tstats td:first-child{text-align:left;color:var(--mute);font-weight:700}
+.tstats thead th{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mute)}
+.tstats td{font-family:var(--f-mono);font-weight:700;cursor:default}
+.tstats td.pb{color:var(--ok)}
+.tmean{font-size:13.5px;color:var(--mute);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.tmean b{color:var(--ink);font-family:var(--f-mono)}
+.tlistWrap{overflow:auto;min-height:0;max-height:420px;border:1px solid var(--line);border-radius:10px}
+@media (min-width:901px){.tlistWrap{max-height:none}}
+.tlist th{position:sticky;top:0;background:var(--panel2);font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mute);padding:6px;text-align:right}
+.tlist td{padding:5px 6px;text-align:right;font-family:var(--f-mono);font-size:14px;border-top:1px solid var(--line)}
+.tlist th:first-child,.tlist td:first-child{text-align:left;color:var(--mute)}
+.tlist tbody tr{cursor:pointer}
+.tlist tbody tr:hover td{background:var(--panel2)}
+.tlist td.t{font-weight:700}
+.tlist td.best{color:var(--ok)}
+.tmain{display:grid;gap:12px;min-width:0}
+.tscr{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:grid;gap:10px}
+.tscrTop{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tscrBtns{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.tscrTxt{font-weight:700;font-size:clamp(16px,2.2vw,22px);line-height:1.6;text-align:center;overflow-wrap:anywhere;word-spacing:.15em}
+.tscrTxt.long{font-size:clamp(13px,1.6vw,16px)}
+.tpad{user-select:none;-webkit-user-select:none;touch-action:none;background:var(--panel);border:1px solid var(--line);border-radius:22px;min-height:clamp(220px,38vh,420px);display:grid;place-content:center;justify-items:center;gap:8px;padding:20px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ttime{font-weight:700;font-size:clamp(68px,15vw,150px);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.tpad[data-s="hold"] .ttime,.tpad[data-s="ihold"] .ttime{color:var(--bad)}
+.tpad[data-s="ready"] .ttime,.tpad[data-s="iready"] .ttime{color:var(--ok)}
+.tpad[data-s="insp"] .ttime,.tpad[data-s="ihold"] .ttime,.tpad[data-s="iready"] .ttime{font-size:clamp(60px,13vw,130px)}
+.tpad .warn{color:var(--bad)}
+.tsub{color:var(--mute);font-size:14.5px;text-align:center;min-height:1.5em}
+.tsub b{color:var(--ink)}
+.ttype{font-family:var(--f-mono);font-size:28px;text-align:center;width:min(320px,80vw)}
+.tlast{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:38px}
+.tlast button{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:7px 14px;font-weight:700}
+.tlast button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.timg{display:flex;justify-content:flex-end}
+.timg svg{width:min(260px,70vw);height:auto}
+.timg .empty{margin-left:auto}
+body.timing header,body.timing .tside,body.timing .tscr,body.timing .tlast,body.timing .timg{visibility:hidden}
+body.timing .tpad{border-color:transparent;background:transparent}
+
+/* dialog */
+.dlg{position:fixed;inset:0;z-index:30;background:color-mix(in srgb,var(--body) 60%,transparent);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.dlg .in{background:var(--panel);border-radius:18px;width:min(460px,100%);max-height:100%;overflow:auto;padding:18px;display:grid;gap:14px}
+.dlg h3{font-size:18px}
+.dlg .big{font-family:var(--f-mono);font-weight:700;font-size:40px;font-variant-numeric:tabular-nums}
+.dlg .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.dlg .row.sp{justify-content:space-between}
+.dlg .scrBox{font-family:var(--f-mono);font-weight:600;background:var(--panel2);border-radius:10px;padding:10px;overflow-wrap:anywhere}
+.set{display:grid;grid-template-columns:1fr auto;gap:10px 14px;align-items:center}
+.set label{font-weight:600}
+.set small{display:block;color:var(--mute);font-weight:500;font-size:13px}
+.set input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent)}
+/* compete */
+.cHero{background:var(--head);color:#fff;border-radius:22px;padding:28px;display:grid;gap:12px;background-image:linear-gradient(135deg,transparent 0 62%,rgba(255,255,255,.05) 62% 74%,transparent 74%)}
+.cHero .label{color:#AFC3FF}
+.cHero h1{font-size:clamp(28px,5vw,44px);line-height:1.08;font-weight:800}
+.cHero p{margin:0;max-width:62ch;color:#D7DEEE;font-size:16.5px}
+.cHero .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.cHero .btn{text-decoration:none;color:#121722;background:#fff}
+.cHero .btn.pri{background:var(--hi);color:#121722}
+a.btn{display:inline-block;text-decoration:none}
+a.small{text-decoration:none;color:var(--ink);display:inline-block}
+.flow{list-style:none;counter-reset:f;margin:12px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.flow li{counter-increment:f;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 14px 14px 52px;position:relative;font-size:14.5px;color:var(--mute)}
+.flow li b{color:var(--ink);display:block;font-size:15.5px;margin-bottom:2px}
+.flow li::before{content:counter(f);position:absolute;left:14px;top:14px;width:28px;height:28px;border-radius:8px;background:var(--accent);color:var(--accent-ink);font-family:var(--f-display);font-weight:700;display:grid;place-items:center;font-size:14px}
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+@media (max-width:860px){.rules{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.rules{grid-template-columns:1fr}}
+.rule{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:6px;align-content:start}
+.rule .rn{font-family:var(--f-display);font-weight:800;font-size:13px;color:var(--accent);letter-spacing:.06em}
+.rule p{margin:0;color:var(--mute);font-size:14.5px}
+.ctab td,.ctab th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;font-size:14.5px;vertical-align:top}
+.ctab th{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--mute)}
+.ctab .pen{text-align:right;font-family:var(--f-mono);font-weight:700;white-space:nowrap}
+.ctab .pen.bad{color:var(--bad)}
+.rtab td:not(:first-child),.rtab th:not(:first-child){text-align:right;font-family:var(--f-mono);font-weight:700}
+.rtab th:not(:first-child){font-family:var(--f-body)}
+.tableWrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:4px 12px}
+.fmt{display:grid;gap:2px}
+.fmt p{margin:0;color:var(--mute);font-size:14.5px}
+.fmt .ex{font-size:13.5px;background:var(--panel2);border-radius:8px;padding:6px 8px;margin-top:4px;overflow-wrap:anywhere}
+.fmt .ex s{color:var(--mute)}
+.events{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:12px}
+.ev{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:2px}
+.ev b{font-size:14.5px}
+.ev span{font-size:13px;color:var(--mute)}
+.ev.leave{border-style:dashed}
+.recs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media (max-width:520px){.recs{grid-template-columns:1fr}}
+.rec{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:2px}
+.rec b{font-size:44px;line-height:1.1;font-variant-numeric:tabular-nums}
+.rec.main{border-top:4px solid var(--hi)}
+/* header band */
+header{background:var(--head)!important;border-bottom:0!important;color:#fff}
+.logo{color:#fff}
+nav button{color:rgba(255,255,255,.72)!important}
+nav button:hover{color:#fff!important}
+nav button[aria-current="page"]{background:#fff!important;color:#101A33!important}
+body::before{background:var(--head)!important}
+@media (max-width:430px){.logo{display:none}nav{gap:0}nav button{padding:8px 5px;font-size:13.5px}}
+@media (max-width:560px){nav .lg2{display:none}nav .sm2{display:inline}}
+/* upgrade */
+.uHero{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:24px}
+@media (max-width:760px){.uHero{grid-template-columns:1fr}}
+.uHero h1{font-size:clamp(28px,5vw,44px);line-height:1.05;font-weight:800}
+.uHero p{margin:10px 0 0;color:var(--mute);max-width:52ch;font-size:16.5px}
+.uTotals{display:grid;gap:8px}
+.uTot{display:grid;grid-template-columns:110px 1fr auto;gap:10px;align-items:center;font-size:14px;font-weight:600}
+.uTot .ubar{height:12px;border-radius:99px;background:var(--chip);overflow:hidden}
+.uTot .ubar i{display:block;height:100%;border-radius:99px;background:var(--mute)}
+.uTot.you .ubar i{background:var(--accent)}
+.uTot.full .ubar i{background:var(--ok)}
+.uTot b{font-family:var(--f-mono);font-variant-numeric:tabular-nums;min-width:5.5em;text-align:right}
+.uSteps{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:12px}
+@media (max-width:860px){.uSteps{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:420px){.uSteps{grid-template-columns:repeat(2,1fr)}}
+.uStep{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 12px;text-align:left;display:grid;gap:2px}
+.uStep .n{font-family:var(--f-display);font-weight:700;font-size:12px;color:var(--accent)}
+.uStep b{font-size:15px}
+.uStep span{font-size:12.5px;color:var(--mute)}
+.uStep[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.uStep[aria-selected="true"] .n,.uStep[aria-selected="true"] span{color:var(--bg);opacity:.8}
+.uPanel{display:grid;grid-template-columns:1fr 1.5fr;gap:12px;margin-top:12px}
+@media (max-width:860px){.uPanel{grid-template-columns:1fr}}
+.uCol{display:grid;gap:12px;align-content:start}
+.uCard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:10px;align-content:start}
+.uCard.now{border-style:dashed}
+.uCard .tag{font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--mute)}
+.uCard.up .tag{color:var(--ok)}
+.uCard h3{font-size:17px}
+.uCard p{margin:0;color:var(--mute);font-size:14.5px}
+.uMeta{display:flex;gap:8px;flex-wrap:wrap}
+.uMeta span{font-size:12.5px;font-weight:700;background:var(--chip);border-radius:99px;padding:3px 10px}
+.uMeta span.save{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.uAlgs{display:grid;gap:8px}
+.uAlg{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;background:var(--panel2);border-radius:10px;padding:6px 8px}
+.uAlg.nopic{grid-template-columns:1fr auto}
+.uAlg svg{width:52px;height:52px;display:block}
+.uAlg .nm{font-size:13px;font-weight:700}
+.uAlg .mv{font-family:var(--f-mono);font-weight:700;font-size:14px;overflow-wrap:anywhere}
+.uAlg .mv i{font-style:normal;color:var(--mute);font-weight:500}
+.uCard .row{display:flex;gap:8px;flex-wrap:wrap}
+.uSim{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:12px;margin-top:12px;align-items:start}
+@media (max-width:900px){.uSim{grid-template-columns:1fr}}
+.uBuild,.uPlay{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:14px;min-width:0}
+.uPresets{display:grid;gap:6px}
+.uOpt{display:grid;gap:6px}
+.uOpt .lbl{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:14.5px}
+.uOpt .lbl span{color:var(--mute);font-weight:600;font-size:12.5px}
+.uOpt .seg{margin-left:0;display:flex;flex-wrap:wrap}
+.uOpt .seg button{flex:1 1 auto;padding:8px 10px;font-size:13.5px}
+.uOpt .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.uOpt .seg button[data-v="beg"][aria-pressed="true"],.uOpt .seg button[data-v="daisy"][aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+#uOpts{display:grid;gap:12px}
+.uScr{display:grid;gap:8px;background:var(--panel2);border-radius:12px;padding:12px}
+.uScrTxt{font-weight:700;font-size:15px;overflow-wrap:anywhere;line-height:1.6}
+.uScr .row{display:flex;gap:8px;flex-wrap:wrap}
+.uOwnRow{display:flex;gap:8px}
+.uOwnRow input{flex:1;min-width:0;font-family:var(--f-mono)}
+.uErr{margin:0;color:var(--bad);font-size:14px;font-weight:600}
+.uGo{width:100%;padding:14px;font-size:16px}
+.uNow{background:var(--panel2);border-radius:12px;padding:10px 14px;min-height:76px;display:grid;gap:2px;align-content:start}
+.uNow .label{color:var(--accent)}
+.uNow p{margin:0;font-weight:600;font-size:15px}
+.uPlay .stage canvas{width:min(330px,80vw,44vh)}
+.uCtrl{display:grid;grid-template-columns:auto auto 1fr auto auto;gap:8px}
+.uCtrl .btn{padding:12px 14px;font-size:16px}
+.uTimeline{display:grid;gap:6px}
+.uTl{display:grid;grid-template-columns:1fr auto;gap:8px;text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:8px 10px;font-size:14px}
+.uTl b{font-family:var(--f-mono);font-size:13.5px;color:var(--mute)}
+.uTl[aria-current="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
+.uTl.done span{color:var(--mute)}
+.uCmp{display:grid;gap:10px}
+.uCmp .note{font-size:14px;color:var(--mute);margin:0}
+
+/* wide screens */
+.uSide{display:grid;gap:12px;align-content:start;min-width:0}
+@media (min-width:901px) and (max-width:1279px){.uSide{grid-column:1/-1;grid-template-columns:1fr 1fr}}
+@media (min-width:1280px){
+  .uSim{grid-template-columns:360px minmax(0,1fr) 340px}
+  .uPlay{position:sticky;top:calc(env(safe-area-inset-top,0px) + 72px)}
+  .uSide{position:sticky;top:calc(env(safe-area-inset-top,0px) + 72px);max-height:calc(100vh - 90px);grid-template-rows:minmax(0,1fr) auto}
+  .uSide .box:first-child{min-height:0;grid-template-rows:auto auto minmax(0,1fr)}
+  .uTimeline{overflow:auto;min-height:0}
+  .uPlay .stage canvas{width:min(480px,100%,56vh)}
+}
+@media (min-width:901px){
+  main:has(#timer:not([hidden])){padding-block:16px 16px}
+  .tmr{height:calc(100vh - 60px - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));min-height:520px;grid-template-columns:320px minmax(0,1fr)}
+  .tside{position:static;max-height:none;height:100%}
+  .tmain{height:100%;grid-template-rows:auto minmax(0,1fr) auto}
+  .tpad{min-height:0;height:100%}
+  .tfoot{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+  .tfoot .tlast{justify-content:flex-start;flex:1}
+  .tfoot .timg{margin-left:auto;flex:none}
+  .timg svg{width:min(240px,24vw)}
+}
+@media (max-width:900px){.tfoot{display:grid;gap:12px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header>
+  <div class="wrap bar">
+    <div class="logo"><svg viewBox="0 0 30 30" aria-hidden="true"><rect x="1" y="1" width="28" height="28" rx="6" class="s-body"/><rect x="4" y="4" width="6.6" height="6.6" rx="1.6" class="s-y"/><rect x="11.7" y="4" width="6.6" height="6.6" rx="1.6" class="s-y"/><rect x="19.4" y="4" width="6.6" height="6.6" rx="1.6" class="s-b"/><rect x="4" y="11.7" width="6.6" height="6.6" rx="1.6" class="s-y"/><rect x="11.7" y="11.7" width="6.6" height="6.6" rx="1.6" class="s-y"/><rect x="19.4" y="11.7" width="6.6" height="6.6" rx="1.6" class="s-y"/><rect x="4" y="19.4" width="6.6" height="6.6" rx="1.6" class="s-r"/><rect x="11.7" y="19.4" width="6.6" height="6.6" rx="1.6" class="s-y"/><rect x="19.4" y="19.4" width="6.6" height="6.6" rx="1.6" class="s-y"/></svg><span>Shortcut Cubing</span></div>
+    <nav aria-label="Sections">
+      <button data-go="learn">Learn</button>
+      <button data-go="upgrade">Upgrade</button>
+      <button data-go="algs"><span class="lg">Algorithms</span><span class="sm">Algs</span></button>
+      <button data-go="practice"><span class="lg lg2">Practice</span><span class="sm sm2">Cards</span></button>
+      <button data-go="timer">Timer</button>
+      <button data-go="compete"><span class="lg">Compete</span><span class="sm">Comps</span></button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section data-tab="learn" id="learn">
+  <div class="hero">
+    <div>
+      <div class="label">The fast method, made small</div>
+      <h1>Learn <em id="hLearn">17</em>. Know <span id="hKnow">30</span>.</h1>
+      <p>Every algorithm you need for a fast 3x3, with the shortcuts that give you two cases for the price of one. Each one has a picture, a move player and flashcards.</p>
+      <div class="cta">
+        <button class="btn pri" data-go="upgrade">Upgrade my beginner method</button>
+        <button class="btn" data-go="algs">See the algorithms</button>
+        <button class="btn" data-go="practice">Start flashcards</button>
+      </div>
+    </div>
+    <div class="heroCube"><canvas id="heroCanvas" aria-label="A cube playing an algorithm"></canvas><div class="mono" id="heroAlg"></div></div>
+  </div>
+
+  <div class="prog box">
+    <div class="row"><span>Your progress</span><span id="progTxt">0 of 30 known</span></div>
+    <div class="track"><div class="fill" id="progFill"></div></div>
+  </div>
+
+  <div>
+    <div class="secHead"><div><h2>The method: 4 steps</h2><p>Hold white on the bottom, yellow on top. Tap a step to see its algorithms.</p></div></div>
+    <div class="steps" style="margin-top:12px">
+      <div class="step"><div class="n">1</div><h3>White cross</h3><p>Solve the 4 white edges on the bottom with no daisy. Plan the first 2 edges before you start the timer.</p><div class="meta">No algorithms. Aim for under 8 s.</div></div>
+      <button class="step" data-set="pairs"><div class="n">2</div><h3>Pairs</h3><p>Join each white corner with its edge on top, then put both in together. Do this 4 times.</p><div class="meta" id="m-pairs"></div></button>
+      <button class="step" data-set="top"><div class="n">3</div><h3>Yellow top</h3><p>Make a yellow cross, then turn the yellow corners up. 2 looks.</p><div class="meta" id="m-top"></div></button>
+      <button class="step" data-set="finish"><div class="n">4</div><h3>Finish</h3><p>Fix the corners with headlights, then cycle the edges. 2 looks.</p><div class="meta" id="m-finish"></div></button>
+    </div>
+  </div>
+
+  <div>
+    <div class="secHead"><div><h2>Shortcuts: learn 1, get 2</h2><p>All of these are checked on a real cube model. "Backwards" means read the moves right to left and flip every prime.</p></div></div>
+    <div class="shorts" id="shorts" style="margin-top:12px"></div>
+  </div>
+
+  <div class="two">
+    <div class="box">
+      <h3>How to read the moves</h3>
+      <div class="notes">
+        <span class="mono">R</span><span>Turn the right face clockwise, as if you are looking at it.</span>
+        <span class="mono">R'</span><span>Prime: turn it counterclockwise.</span>
+        <span class="mono">R2</span><span>Turn it twice.</span>
+        <span class="mono">U D F B L</span><span>Top, bottom, front, back and left faces.</span>
+        <span class="mono">r f</span><span>Lowercase: turn two layers together.</span>
+        <span class="mono">M</span><span>The middle slice, turned like L.</span>
+        <span class="mono">( )</span><span>A chunk to learn as one move, like (R U R' U').</span>
+      </div>
+    </div>
+    <div class="box">
+      <h3>Your 20-minute day</h3>
+      <ol>
+        <li><b>5 min flashcards.</b> Practice tab, only the ones you're learning.</li>
+        <li><b>10 min pairs only.</b> Scramble, make the cross, solve the 4 pairs slowly without stopping. Then do it again.</li>
+        <li><b>5 min timed solves.</b> Timer tab. Watch your average of 5, not your best.</li>
+      </ol>
+      <p class="empty">Learn 2 new algorithms a day at most. Know them well before adding more.</p>
+    </div>
+  </div>
+
+  <div class="box">
+    <h3>How long it really takes</h3>
+    <p class="empty">Algorithms are only part of it. Pairs and looking ahead make up most of the time you save.</p>
+    <div class="timeline">
+      <div><b>Week 1–2</b><span>Learn the 4 finish algorithms and the 3 easiest pairs. Sub-40 is realistic.</span></div>
+      <div><b>Month 1</b><span>All pairs without thinking, 2-look yellow top. Most cubers reach sub-35.</span></div>
+      <div><b>Month 2–4</b><span>Look for the next pair while you solve the current one. Sub-30.</span></div>
+      <div><b>Month 6–12</b><span>Speed-up algorithms, smooth turning, full pairs lookahead. Sub-20.</span></div>
+    </div>
+  </div>
+</section>
+
+<section data-tab="upgrade" id="upgrade" hidden>
+  <div class="uHero">
+    <div>
+      <div class="label">Upgrade your beginner method</div>
+      <h1>Swap one step at a time</h1>
+      <p>Pick a step of the beginner method to see what replaces it. Then build your own mix and watch a scrambled cube get solved exactly that way.</p>
+    </div>
+    <div class="uTotals" id="uTotals"></div>
+  </div>
+
+  <div>
+    <div class="secHead"><div><h2>1. Pick a step</h2><p>The steps in the order you solve them.</p></div></div>
+    <div class="uSteps" id="uSteps" role="tablist" aria-label="Beginner steps"></div>
+    <div class="uPanel" id="uPanel"></div>
+  </div>
+
+  <div id="uSimWrap">
+    <div class="secHead"><div><h2>2. Build your method and watch it solve</h2><p>Choose a version for each step. Steps that belong together switch together.</p></div></div>
+    <div class="uSim">
+      <div class="uBuild">
+        <div class="uPresets"><span class="label">Start from</span><div class="chips" id="uPresets"></div></div>
+        <div id="uOpts"></div>
+        <div class="uScr">
+          <div class="label">Scramble</div>
+          <div class="mono uScrTxt" id="uScrTxt"></div>
+          <div class="row"><button class="small" id="uNewScr">New scramble</button><button class="small" id="uOwn">Use my own</button></div>
+          <div class="uOwnRow" id="uOwnRow" hidden><input class="tin" id="uOwnIn" placeholder="R U R' F2 D …" aria-label="Your scramble" autocomplete="off"><button class="small" id="uOwnGo">Use it</button></div>
+          <p class="uErr" id="uErr" hidden></p>
+        </div>
+        <button class="btn pri uGo" id="uSolve">Solve it with my method</button>
+      </div>
+      <div class="uPlay" id="uPlay">
+        <div class="uNow"><span class="label" id="uStage">Ready</span><p id="uSay">Press "Solve it" to watch your method solve this scramble.</p></div>
+        <div class="stage"><canvas id="uCanvas" aria-label="3D cube. Drag to look around it."></canvas><span class="dragHint">Drag to turn the cube · double-tap to reset</span></div>
+        <div class="moves" id="uMoves"></div>
+        <div class="uCtrl">
+          <button class="btn" id="uPrevS" aria-label="Previous step">⏮</button>
+          <button class="btn" id="uPrevM" aria-label="One move back">◀</button>
+          <button class="btn pri" id="uPlayBtn">Play</button>
+          <button class="btn" id="uNextM" aria-label="One move forward">▶</button>
+          <button class="btn" id="uNextS" aria-label="Next step">⏭</button>
+        </div>
+        <div class="ctrl2"><div class="seg" role="group" aria-label="Speed" id="uSpeed"><button data-s="0.6">Slow</button><button data-s="1">Normal</button><button data-s="2">Fast</button><button data-s="4">Very fast</button></div><span class="empty" id="uCount"></span></div>
+      </div>
+    <div class="uSide">
+        <div class="box"><h3>Steps in this solve</h3><p class="empty">Tap a step to jump to it.</p><div class="uTimeline" id="uTimeline"></div></div>
+        <div class="box"><h3>Compare on this scramble</h3><div id="uCompare"><p class="empty">Solve a scramble to compare your method with the beginner method and the full upgrade.</p></div></div>
+      
+    </div>
+</div>
+  </div>
+</section>
+
+
+<section data-tab="algs" id="algs" hidden>
+  <div class="secHead">
+    <div><h2>Algorithms</h2><p>The picture shows how to hold the cube. Green in front, yellow on top.</p></div>
+  </div>
+  <div class="chips" id="algChips"></div>
+  <div class="grid" id="algGrid"></div>
+</section>
+
+<section data-tab="practice" id="practice" hidden>
+  <div class="secHead"><div><h2>Flashcards</h2><p>Look at the case, say the algorithm in your head or do it on your cube, then check.</p></div></div>
+  <div class="chips" id="prChips"></div>
+  <div class="flash" id="flash"></div>
+</section>
+
+<section data-tab="timer" id="timer" hidden>
+  <div class="tmr">
+    <aside class="tside" aria-label="Session and stats">
+      <div class="trow"><select id="tSession" aria-label="Session"></select><button class="small" id="tSesNew">New</button><button class="small" id="tSesMenu" aria-label="Session options">•••</button></div>
+      <table class="tstats"><thead><tr><th></th><th>Current</th><th>Best</th></tr></thead><tbody id="tStats"></tbody></table>
+      <div class="tmean" id="tMean"></div>
+      <div class="tlistWrap"><table class="tlist"><thead><tr><th>#</th><th>Time</th><th>ao5</th><th>ao12</th></tr></thead><tbody id="tList"></tbody></table></div>
+    </aside>
+    <div class="tmain">
+      <div class="tscr">
+        <div class="tscrTop">
+          <select id="tEvent" aria-label="Event"></select>
+          <div class="tscrBtns"><button class="small" id="tPrev">Last</button><button class="small" id="tNext">Next</button><button class="small" id="tCopy">Copy</button><button class="small" id="tSetBtn">Settings</button></div>
+        </div>
+        <div class="tscrTxt mono" id="tScr"></div>
+      </div>
+      <div class="tpad" id="tPad" data-s="idle" tabindex="0" role="button" aria-label="Timer">
+        <div class="ttime mono" id="tTime">0.00</div>
+        <div class="tsub" id="tSub"></div>
+        <input class="tin ttype" id="tType" hidden inputmode="decimal" autocomplete="off" placeholder="12.34" aria-label="Type your time">
+      </div>
+      <div class="tfoot"><div class="tlast" id="tLast"></div><div class="timg" id="tImg"></div></div>
+    </div>
+  </div>
+</section>
+
+<section data-tab="compete" id="compete" hidden>
+  <div class="cHero">
+    <div class="label">Competition guide</div>
+    <h1>Your first official competition</h1>
+    <p>Official speedcubing results come from World Cube Association (WCA) competitions. Anyone can enter, and there are competitions all over the Philippines. Here is what happens and what the rules say.</p>
+    <div class="cta"><a class="btn pri" href="https://www.worldcubeassociation.org/competitions?region=Philippines" target="_blank" rel="noopener">Find competitions in the Philippines</a><a class="btn" href="https://www.worldcubeassociation.org/regulations/" target="_blank" rel="noopener">Read the full regulations</a></div>
+  </div>
+
+  <div>
+    <div class="secHead"><div><h2>How a competition day goes</h2><p>In order, from signing up to seeing your name in the rankings.</p></div></div>
+    <ol class="flow">
+      <li><b>Register online.</b> Pick a competition on the WCA website, choose your events and pay the fee. Popular ones fill up fast.</li>
+      <li><b>Check the schedule.</b> Each event has rounds and groups. Know when your group is called.</li>
+      <li><b>Check in.</b> You get a name tag and scorecards. First-timers may be asked for an ID.</li>
+      <li><b>Wait to be called.</b> Put your cube on your scorecard in the waiting area when your group is up.</li>
+      <li><b>Solve.</b> A judge runs each attempt with a Stackmat timer and writes your time on the scorecard.</li>
+      <li><b>Help out.</b> Between your groups you may judge, scramble or run cubes. Everyone helps.</li>
+      <li><b>See your results.</b> After the competition you get a WCA ID, and your times appear on your WCA profile with world, continent and national ranks.</li>
+    </ol>
+  </div>
+
+  <div>
+    <div class="secHead"><div><h2>One official solve, step by step</h2><p>Practice exactly this in the Timer tab with WCA inspection on.</p></div></div>
+    <div class="rules">
+      <div class="rule"><span class="rn">1</span><b>Cover off, inspection starts</b><p>The judge lifts the cover. You have 15 seconds to look at the cube. You may pick it up and rotate it, but you may not turn any layer.</p></div>
+      <div class="rule"><span class="rn">2</span><b>The judge calls 8 and 12</b><p>"Eight seconds" and "Twelve seconds" are reminders only.</p></div>
+      <div class="rule"><span class="rn">3</span><b>Start on the mat</b><p>Put the cube down, rest your fingers on the timer pads, palms down. The solve starts when your hands leave the pads.</p></div>
+      <div class="rule"><span class="rn">4</span><b>Stop with both hands</b><p>Let go of the cube first, then stop the timer with both hands. Stopping while holding the cube is +2.</p></div>
+      <div class="rule"><span class="rn">5</span><b>The judge checks it</b><p>Each layer may be off by up to 45°. One move away from solved is +2. More than that is DNF.</p></div>
+      <div class="rule"><span class="rn">6</span><b>Sign the scorecard</b><p>Check the time the judge wrote, then sign. Once you sign, you agree with the result.</p></div>
+    </div>
+  </div>
+
+  <div class="two">
+    <div class="box">
+      <h3>Penalties to know</h3>
+      <table class="ctab"><tbody>
+        <tr><td>Start after 15 s of inspection (before 17 s)</td><td class="pen">+2</td></tr>
+        <tr><td>Start at 17 s of inspection or later</td><td class="pen bad">DNF</td></tr>
+        <tr><td>Turning a layer during inspection</td><td class="pen bad">DNF</td></tr>
+        <tr><td>Cube one move away from solved</td><td class="pen">+2</td></tr>
+        <tr><td>Cube two or more moves away</td><td class="pen bad">DNF</td></tr>
+        <tr><td>Stopping the timer while holding the cube</td><td class="pen">+2</td></tr>
+        <tr><td>Starting with fingers off the pads</td><td class="pen">+2</td></tr>
+      </tbody></table>
+      <p class="empty">DNF means "did not finish". The attempt counts as the slowest possible time.</p>
+    </div>
+    <div class="box">
+      <h3>How your result is worked out</h3>
+      <div class="fmt"><b>Average of 5</b><p>Used for 3x3, 2x2, 4x4, 5x5, OH and most events. Drop the best and worst, then average the middle 3. One DNF counts as your worst time. Two DNFs make the average a DNF.</p>
+        <div class="ex mono">10.21 · <s>9.80</s> · 11.05 · <s>13.40</s> · 10.74 → <b>10.67</b></div></div>
+      <div class="fmt"><b>Mean of 3</b><p>Used for 6x6, 7x7, blindfolded and fewest moves. The average of all 3 attempts.</p></div>
+      <div class="fmt"><b>Cutoffs and time limits</b><p>First rounds often have a cutoff: if neither of your first 2 solves beats it, you stop after 2. A time limit ends any solve that goes too long, and it counts as DNF.</p></div>
+      <div class="fmt"><b>Rounds</b><p>The fastest people from each round move on, for example the top 75%. The final decides the winner, by average.</p></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="secHead"><div><h2>Official events</h2><p>17 events right now. Times are recorded to the hundredth of a second.</p></div></div>
+    <div class="events" id="evGrid"></div>
+    <p class="empty" style="margin-top:10px">Changes coming: Face Turning Octahedron (FTO) becomes official on 2 January 2027, and Clock stops being official on 25 July 2027.</p>
+  </div>
+
+  <div>
+    <div class="secHead"><div><h2>World records</h2><p>3x3 records as of October 2026. Records change often, so check the WCA site for the latest.</p></div><a class="small" href="https://www.worldcubeassociation.org/results/records" target="_blank" rel="noopener">All records</a></div>
+    <div class="recs">
+      <div class="rec main"><span class="label">3x3 single</span><b class="mono">2.51</b><span>Xuanyi Geng, China</span><span class="empty">Guangzhou Grand Open 2026</span></div>
+      <div class="rec main"><span class="label">3x3 average</span><b class="mono">3.51</b><span>Yiheng Wang, China</span><span class="empty">Hefei Cubing League 2026, June</span></div>
+    </div>
+    <div class="tableWrap" style="margin-top:12px"><table class="ctab rtab"><thead><tr><th>Event</th><th>Single</th><th>Average</th></tr></thead><tbody>
+      <tr><td>2x2x2</td><td>0.39</td><td>0.86</td></tr>
+      <tr><td>4x4x4</td><td>15.18</td><td>18.56</td></tr>
+      <tr><td>5x5x5</td><td>29.49</td><td>33.73</td></tr>
+      <tr><td>3x3x3 One-Handed</td><td>5.66</td><td>7.72</td></tr>
+      <tr><td>3x3x3 Blindfolded</td><td>11.56</td><td>14.05 (mean)</td></tr>
+      <tr><td>Pyraminx</td><td>0.73</td><td>1.14</td></tr>
+      <tr><td>Skewb</td><td>0.73</td><td>1.37</td></tr>
+      <tr><td>Megaminx</td><td>21.04</td><td>24.38</td></tr>
+    </tbody></table></div>
+    <p class="empty" style="margin-top:8px">Other events as of June 2026.</p>
+  </div>
+
+  <div class="two">
+    <div class="box">
+      <h3>What to bring</h3>
+      <ul>
+        <li>Your cubes for every event you entered, cleaned and lubed the week before, not the day before</li>
+        <li>A pen, water and a snack. Days can be long</li>
+        <li>An ID if it is your first competition</li>
+        <li>A cube bag or box with your name on it</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Practice like it is real</h3>
+      <ul>
+        <li>Turn on WCA inspection in the Timer settings and always use it</li>
+        <li>Set the hold time to 0.55 s, like a real Stackmat</li>
+        <li>Watch your ao5, not your best single. That is what ranks you</li>
+        <li>Do your last 20 practice solves with no warm-up, like your first solve of the day</li>
+      </ul>
+    </div>
+  </div>
+  <p class="empty">Shortcut Cubing is a free practice site. It is not part of the World Cube Association.</p>
+</section>
+
+
+</main>
+
+<div class="dlg" id="dlg" hidden><div class="in" role="dialog" aria-modal="true" id="dlgIn"></div></div>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="in" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+    <div class="top"><h3 id="pTitle"></h3><button class="x" id="pClose" aria-label="Close">×</button></div>
+    <div class="now"><b class="mono" id="pMove">Start</b><span id="pSay"></span></div>
+    <div class="stage"><canvas id="pCanvas" aria-label="3D cube. Drag to look around it."></canvas><span class="dragHint">Drag to turn the cube · double-tap to reset</span></div>
+    <div class="moves" id="pMoves"></div>
+    <div class="ctrl">
+      <button class="btn" id="pReset" aria-label="Back to the start">⏮</button>
+      <button class="btn" id="pBack" aria-label="One move back">◀</button>
+      <button class="btn pri wide" id="pPlay">Play</button>
+      <button class="btn" id="pNext" aria-label="One move forward">▶</button>
+    </div>
+    <div class="ctrl2">
+      <div class="seg" role="group" aria-label="Speed" id="pSpeed"><button data-s="0.5">Slow</button><button data-s="1">Normal</button><button data-s="2">Fast</button></div>
+      <label class="loop"><input type="checkbox" id="pLoop"> Loop</label>
+    </div>
+    <p class="keys">Keys: Space play or pause · ← → step · Esc close</p>
+  </div>
+</div>
+
+<script>
+/* Cube engine: cubies with sticker normals. Math coords: x right, y up, z toward viewer.
+   Faces: R=+x, L=-x, U=+y, D=-y, F=+z, B=-z. */
+var Cube = (function () {
+  var FACE_COLOR = { R: 'o', L: 'r', U: 'y', D: 'w', F: 'g', B: 'b' };
+
+  function normalFace(n) {
+    if (n[0] === 1) return 'R';
+    if (n[0] === -1) return 'L';
+    if (n[1] === 1) return 'U';
+    if (n[1] === -1) return 'D';
+    if (n[2] === 1) return 'F';
+    return 'B';
+  }
+  function colorOfNormal(n) { return FACE_COLOR[normalFace(n)]; }
+
+  // rotate vector by a quarter turn about an axis (sgn +1 = counterclockwise seen from +axis tip)
+  function rot(v, axis, sgn) {
+    var x = v[0], y = v[1], z = v[2];
+    if (axis === 0) return sgn > 0 ? [x, -z, y] : [x, z, -y];
+    if (axis === 1) return sgn > 0 ? [z, y, -x] : [-z, y, x];
+    return sgn > 0 ? [-y, x, z] : [y, -x, z];
+  }
+
+  var MOVES = {
+    R: { axis: 0, layers: [1], sgn: -1 },
+    L: { axis: 0, layers: [-1], sgn: 1 },
+    U: { axis: 1, layers: [1], sgn: -1 },
+    D: { axis: 1, layers: [-1], sgn: 1 },
+    F: { axis: 2, layers: [1], sgn: -1 },
+    B: { axis: 2, layers: [-1], sgn: 1 },
+    r: { axis: 0, layers: [0, 1], sgn: -1 },
+    l: { axis: 0, layers: [-1, 0], sgn: 1 },
+    u: { axis: 1, layers: [0, 1], sgn: -1 },
+    d: { axis: 1, layers: [-1, 0], sgn: 1 },
+    f: { axis: 2, layers: [0, 1], sgn: -1 },
+    b: { axis: 2, layers: [-1, 0], sgn: 1 },
+    M: { axis: 0, layers: [0], sgn: 1 },
+    E: { axis: 1, layers: [0], sgn: 1 },
+    S: { axis: 2, layers: [0], sgn: -1 },
+    x: { axis: 0, layers: null, sgn: -1 },
+    y: { axis: 1, layers: null, sgn: -1 },
+    z: { axis: 2, layers: null, sgn: -1 }
+  };
+
+  function newCube() {
+    var cubies = [];
+    for (var x = -1; x <= 1; x++) for (var y = -1; y <= 1; y++) for (var z = -1; z <= 1; z++) {
+      var st = [];
+      if (x) st.push({ n: [x, 0, 0], c: FACE_COLOR[x > 0 ? 'R' : 'L'] });
+      if (y) st.push({ n: [0, y, 0], c: FACE_COLOR[y > 0 ? 'U' : 'D'] });
+      if (z) st.push({ n: [0, 0, z], c: FACE_COLOR[z > 0 ? 'F' : 'B'] });
+      cubies.push({ p: [x, y, z], s: st });
+    }
+    return cubies;
+  }
+  function clone(c) {
+    return c.map(function (q) {
+      return { p: q.p.slice(), s: q.s.map(function (t) { return { n: t.n.slice(), c: t.c }; }) };
+    });
+  }
+
+  function parse(str) {
+    if (!str) return [];
+    return str.trim().split(/\s+/).filter(Boolean).map(function (t) {
+      var m = /^([RLUDFBrludfbMESxyz])(2|')?$/.exec(t);
+      if (!m) throw new Error('bad move ' + t);
+      return { name: t, face: m[1], mod: m[2] || '' };
+    });
+  }
+  function spec(tok) {
+    var b = MOVES[tok.face];
+    return {
+      axis: b.axis, layers: b.layers,
+      sgn: b.sgn * (tok.mod === "'" ? -1 : 1),
+      quarters: tok.mod === '2' ? 2 : 1
+    };
+  }
+  function inLayer(q, sp) { return sp.layers === null || sp.layers.indexOf(q.p[sp.axis]) >= 0; }
+
+  function applyTok(cube, tok) {
+    var sp = spec(tok);
+    cube.forEach(function (q) {
+      if (!inLayer(q, sp)) return;
+      for (var i = 0; i < sp.quarters; i++) {
+        q.p = rot(q.p, sp.axis, sp.sgn);
+        q.s.forEach(function (t) { t.n = rot(t.n, sp.axis, sp.sgn); });
+      }
+    });
+  }
+  function apply(cube, str) {
+    parse(str).forEach(function (t) { applyTok(cube, t); });
+    return cube;
+  }
+  function invertTok(t) {
+    if (t.mod === '2') return t.name;
+    return t.face + (t.mod === "'" ? '' : "'");
+  }
+  function invert(str) {
+    return parse(str).reverse().map(invertTok).join(' ');
+  }
+  function fromSetup(str) { return apply(newCube(), str); }
+
+  function at(cube, p) {
+    for (var i = 0; i < cube.length; i++) {
+      var q = cube[i];
+      if (q.p[0] === p[0] && q.p[1] === p[1] && q.p[2] === p[2]) return q;
+    }
+  }
+  function sticker(cube, p, n) {
+    var q = at(cube, p);
+    for (var i = 0; i < q.s.length; i++) {
+      var t = q.s[i];
+      if (t.n[0] === n[0] && t.n[1] === n[1] && t.n[2] === n[2]) return t.c;
+    }
+  }
+  function nz(p) { return (p[0] ? 1 : 0) + (p[1] ? 1 : 0) + (p[2] ? 1 : 0); }
+
+  // colour of the centre sitting in each direction (centres only move when the whole cube is turned)
+  function centers(cube) {
+    var m = {};
+    cube.forEach(function (q) { if (nz(q.p) === 1) m[q.p.join()] = q.s[0].c; });
+    return m;
+  }
+  function cubieCorrect(q, cc) {
+    return q.s.every(function (t) { return t.c === cc[t.n.join()]; });
+  }
+  function f2lSolved(cube) {
+    var cc = centers(cube);
+    return cube.every(function (q) { return q.p[1] > 0 || cubieCorrect(q, cc); });
+  }
+  function ulayer(cube, kind) {
+    return cube.filter(function (q) { return q.p[1] === 1 && nz(q.p) === kind; });
+  }
+  function upSticker(q) {
+    for (var i = 0; i < q.s.length; i++) if (q.s[i].n[1] === 1) return q.s[i].c;
+  }
+  function crossDone(cube) { return ulayer(cube, 2).every(function (q) { return upSticker(q) === 'y'; }); }
+  function yellowFace(cube) { return ulayer(cube, 2).concat(ulayer(cube, 3)).every(function (q) { return upSticker(q) === 'y'; }); }
+  function slotColors(q, cc) {
+    var out = [];
+    if (q.p[0]) out.push(cc[[q.p[0], 0, 0].join()]);
+    out.push(cc['0,1,0']);
+    if (q.p[2]) out.push(cc[[0, 0, q.p[2]].join()]);
+    return out.sort().join('');
+  }
+  function pieceColors(q) { return q.s.map(function (t) { return t.c; }).sort().join(''); }
+  function placed(q, cc) { return slotColors(q, cc) === pieceColors(q); }
+  function cornersPlaced(cube) { var cc = centers(cube); return ulayer(cube, 3).every(function (q) { return placed(q, cc); }); }
+  function edgesPlaced(cube) { var cc = centers(cube); return ulayer(cube, 2).every(function (q) { return placed(q, cc); }); }
+  function solved(cube) { var cc = centers(cube); return cube.every(function (q) { return cubieCorrect(q, cc); }); }
+  function placedCount(cube, kind) { var cc = centers(cube); return ulayer(cube, kind).filter(function (q) { return placed(q, cc); }).length; }
+
+  function edgeUpCount(cube) { return ulayer(cube, 2).filter(function (q) { return upSticker(q) === 'y'; }).length; }
+  function cornerUpCount(cube) { return ulayer(cube, 3).filter(function (q) { return upSticker(q) === 'y'; }).length; }
+
+  // Top-down diagram data: grid (3x3 of U stickers), plus the four side strips
+  function topView(cube) {
+    var g = [], front = [], back = [], left = [], right = [];
+    for (var r = 0; r < 3; r++) {
+      var z = r - 1, row = [];
+      for (var c = 0; c < 3; c++) row.push(sticker(cube, [c - 1, 1, z], [0, 1, 0]));
+      g.push(row);
+    }
+    for (var i = -1; i <= 1; i++) {
+      front.push(sticker(cube, [i, 1, 1], [0, 0, 1]));
+      back.push(sticker(cube, [i, 1, -1], [0, 0, -1]));
+      left.push(sticker(cube, [-1, 1, i], [-1, 0, 0]));
+      right.push(sticker(cube, [1, 1, i], [1, 0, 0]));
+    }
+    return { grid: g, front: front, back: back, left: left, right: right };
+  }
+
+  // ---- sticker lists (for the colour painter) ----
+  // Net order: U, R, F, D, L, B. Each face is read as you look straight at it, row by row.
+  // The net is drawn like this:   U
+  //                             L F R B
+  //                               D
+  var FACES = ['U', 'R', 'F', 'D', 'L', 'B'];
+  function faceletPos(face, r, c) {
+    switch (face) {
+      case 'U': return { p: [c - 1, 1, r - 1], n: [0, 1, 0] };
+      case 'F': return { p: [c - 1, 1 - r, 1], n: [0, 0, 1] };
+      case 'R': return { p: [1, 1 - r, 1 - c], n: [1, 0, 0] };
+      case 'B': return { p: [1 - c, 1 - r, -1], n: [0, 0, -1] };
+      case 'L': return { p: [-1, 1 - r, c - 1], n: [-1, 0, 0] };
+      default:  return { p: [c - 1, -1, 1 - r], n: [0, -1, 0] };
+    }
+  }
+  function toFacelets(cube) {
+    var out = [];
+    FACES.forEach(function (f) {
+      for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) {
+        var fp = faceletPos(f, r, c);
+        out.push(sticker(cube, fp.p, fp.n));
+      }
+    });
+    return out;
+  }
+  function fromFacelets(arr) {
+    var cube = newCube();
+    cube.forEach(function (q) { q.s.forEach(function (t) { t.c = null; }); });
+    var i = 0;
+    FACES.forEach(function (f) {
+      for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) {
+        var fp = faceletPos(f, r, c), q = at(cube, fp.p);
+        for (var k = 0; k < q.s.length; k++) {
+          var t = q.s[k];
+          if (t.n[0] === fp.n[0] && t.n[1] === fp.n[1] && t.n[2] === fp.n[2]) t.c = arr[i];
+        }
+        i++;
+      }
+    });
+    return cube;
+  }
+  function colorsKey(q) { return q.s.map(function (t) { return t.c; }).sort().join(''); }
+
+  return {
+    FACES: FACES, faceletPos: faceletPos, toFacelets: toFacelets, fromFacelets: fromFacelets,
+    cubieCorrect: cubieCorrect, colorsKey: colorsKey,
+    FACE_COLOR: FACE_COLOR, MOVES: MOVES, newCube: newCube, clone: clone, parse: parse, spec: spec,
+    inLayer: inLayer, applyTok: applyTok, apply: apply, invert: invert, fromSetup: fromSetup,
+    at: at, sticker: sticker, rot: rot, colorOfNormal: colorOfNormal, centers: centers, placedCount: placedCount,
+    f2lSolved: f2lSolved, crossDone: crossDone, yellowFace: yellowFace, cornersPlaced: cornersPlaced,
+    edgesPlaced: edgesPlaced, solved: solved, edgeUpCount: edgeUpCount, cornerUpCount: cornerUpCount,
+    ulayer: ulayer, upSticker: upSticker, placed: placed, topView: topView, nz: nz
+  };
+})();
+
+
+</script>
+<script>
+/* Layer-by-layer solver that works like a person: it only uses the moves a beginner is taught.
+   Input: any legal cube (engine cubies). Output: segments {stage, label, moves}.
+   Orientation rule: yellow center ends up on top, white center on the bottom. */
+var Solver = (function (C) {
+  'use strict';
+
+  var NAME = { y: 'yellow', w: 'white', g: 'green', b: 'blue', o: 'orange', r: 'red' };
+  var YR = ['', 'y', "y'", 'y2'];
+  var UT = ['', 'U', "U'", 'U2'];
+  var OPP = { U: 'D', D: 'U', R: 'L', L: 'R', F: 'B', B: 'F' };
+  var RANK = { U: 0, R: 0, F: 0, D: 1, L: 1, B: 1 };
+  var FACE_MOVES = [];
+  ['U', 'R', 'F', 'L', 'B', 'D'].forEach(function (f) { ['', "'", '2'].forEach(function (m) { FACE_MOVES.push(f + m); }); });
+
+  var ALG = {
+    cross: "F R U R' U' F'",
+    crossL: "F U R U' R' F'",
+    edges: "R U R' U R U2 R' U",
+    corners: "U R U' L' U R' U' L",
+    twist: "R' D' R D",
+    pop: "R U R' U'",
+    midR: "U R U' R' U' F' U F",
+    midL: "U' L' U L U F U' F'"
+  };
+
+  var STAGE_NAME = {
+    daisy: 'Daisy', cross: 'White cross', corners: 'White corners', middle: 'Middle layer',
+    llcross: 'Yellow cross', lledges: 'Match edges', llcorners: 'Place corners', lltwist: 'Twist corners',
+    oll1: 'Yellow cross', oll2: 'Corner twist', pll1: 'Corner swap', pll2: 'Edge swap',
+    fcross: 'Cross', f2l: 'F2L pairs', fbcorners: 'White corners', fboll: 'Corner twist', fbpll1: 'Corner swap', fbpll2: 'Edge swap',
+    lblock: 'Left block', rblock: 'Right block', eo: 'Edge flip', dfdb: 'Bottom edges'
+  };
+
+  var OCLL = [
+    { id: 'sune', name: 'Sune', moves: "R U R' U R U2 R'" },
+    { id: 'antisune', name: 'Antisune', moves: "R U2 R' U' R U' R'" },
+    { id: 'h', name: 'H case', moves: "F R U R' U' R U R' U' R U R' U' F'" },
+    { id: 'pi', name: 'Pi case', moves: "R U2 R2 U' R2 U' R2 U2 R" },
+    { id: 'u', name: 'U case', moves: "R2 D R' U2 R D' R' U2 R'" },
+    { id: 't', name: 'T case', moves: "r U R' U' r' F R F'" },
+    { id: 'l', name: 'L case', moves: "F R' F' r U R U' r'" }
+  ];
+  var PLL1 = [
+    { id: 'a', name: 'A-perm', moves: "R' F R' B2 R F' R' B2 R2" },
+    { id: 'y', name: 'Y-perm', moves: "F R U' R' U' R U R' F' R U R' U' R' F R F'" }
+  ];
+  var PLL2 = [
+    { id: 'ua', name: 'U-perm (clockwise)', moves: "M2 U M U2 M' U M2" },
+    { id: 'ub', name: 'U-perm (counter-clockwise)', moves: "M2 U' M U2 M' U' M2" },
+    { id: 'h', name: 'H-perm', moves: "M2 U M2 U2 M2 U M2" },
+    { id: 'z', name: 'Z-perm', moves: "M2 U M U2 M2 U2 M U' M2" }
+  ];
+
+  /* ---------- small helpers ---------- */
+  function nm(c) { return NAME[c]; }
+  function dirOf(cube, col) {
+    var cc = C.centers(cube);
+    for (var k in cc) if (cc[k] === col) return k.split(',').map(Number);
+    return null;
+  }
+  function find(cube, cols) {
+    var k = cols.slice().sort().join('');
+    for (var i = 0; i < cube.length; i++) if (cube[i].s.length === cols.length && C.colorsKey(cube[i]) === k) return cube[i];
+    throw new Error('piece not found: ' + k);
+  }
+  function faceOf(d) { return d[2] === 1 ? 'F' : d[2] === -1 ? 'B' : d[0] === 1 ? 'R' : d[0] === -1 ? 'L' : d[1] === 1 ? 'U' : 'D'; }
+  function posIs(q, p) { return q.p[0] === p[0] && q.p[1] === p[1] && q.p[2] === p[2]; }
+  function okPiece(cube, q) { return C.cubieCorrect(q, C.centers(cube)); }
+  function tokCost(t) { return t === '' ? 0 : t === 'U2' || t === 'y2' ? 2 : 1; }
+  function inv(tok) { return tok[tok.length - 1] === '2' ? tok : (tok[tok.length - 1] === "'" ? tok.slice(0, -1) : tok + "'"); }
+  function pick(cube, tokens, pred) {
+    for (var i = 0; i < tokens.length; i++) {
+      var t = C.clone(cube);
+      C.apply(t, tokens[i]);
+      if (pred(t)) return tokens[i];
+    }
+    return null;
+  }
+  function repeat(alg, n) { var a = []; for (var i = 0; i < n; i++) a.push(alg); return a.join(' '); }
+
+  function makeCtx(cube) { return { cube: cube, segs: [] }; }
+  function act(ctx, stage, label, moves) {
+    if (!moves) return;
+    C.apply(ctx.cube, moves);
+    ctx.segs.push({ stage: stage, label: label, moves: moves });
+  }
+
+  /* iterative deepening over plain face turns, undoing moves in place */
+  function idSearch(cube, goalFn, maxDepth) {
+    var seq = [];
+    function dfs(depth, max, last) {
+      if (depth === max) return goalFn(cube);
+      for (var i = 0; i < FACE_MOVES.length; i++) {
+        var m = FACE_MOVES[i], f = m[0];
+        if (f === last) continue;
+        if (last && OPP[last] === f && RANK[f] < RANK[last]) continue;
+        C.apply(cube, m);
+        seq.push(m);
+        var ok = dfs(depth + 1, max, f);
+        C.apply(cube, inv(m));
+        if (ok) return true;
+        seq.pop();
+      }
+      return false;
+    }
+    for (var d = 1; d <= maxDepth; d++) { seq = []; if (dfs(0, d, '')) return seq.slice(); }
+    return null;
+  }
+
+  /* ---------- step 0: yellow on top ---------- */
+  function orient(ctx) {
+    var d = dirOf(ctx.cube, 'y');
+    if (d[1] === 1) return;
+    var t = pick(ctx.cube, ['x', "x'", 'x2', 'z', "z'", 'z2'], function (c) { return dirOf(c, 'y')[1] === 1; });
+    act(ctx, ctx.mode === 'cfop' || ctx.mode === 'fastbeg' ? 'fcross' : ctx.mode === 'blocks' ? 'lblock' : 'daisy', 'Turn the whole cube so the yellow center is on top and white is on the bottom.', t);
+  }
+
+  /* ---------- step 1: daisy ---------- */
+  function isPetal(cube, c) {
+    var q = find(cube, ['w', c]);
+    return q.p[1] === 1 && C.nz(q.p) === 2 && q.s.some(function (t) { return t.c === 'w' && t.n[1] === 1; });
+  }
+  function daisy(ctx) {
+    var sides = ['g', 'b', 'o', 'r'];
+    for (var guard = 0; guard < 6; guard++) {
+      var pending = sides.filter(function (c) { return !isPetal(ctx.cube, c); });
+      if (!pending.length) return;
+      var keep = sides.filter(function (c) { return isPetal(ctx.cube, c); });
+      var best = null;
+      for (var d = 1; d <= 5 && !best; d++) {
+        for (var i = 0; i < pending.length && !best; i++) {
+          (function (c) {
+            var seq = idSearchAt(ctx.cube, d, function (cube) {
+              return isPetal(cube, c) && keep.every(function (k) { return isPetal(cube, k); });
+            });
+            if (seq) best = { c: c, seq: seq };
+          })(pending[i]);
+        }
+      }
+      if (!best) throw new Error('daisy: no sequence');
+      var label = (keep.length ? 'Add a petal: ' : 'Start the daisy: ') + 'bring the white-' + nm(best.c) +
+        ' edge up next to the yellow center with its white side facing up.' + (keep.length ? ' Keep the petals you already have.' : '');
+      act(ctx, 'daisy', label, best.seq.join(' '));
+    }
+    throw new Error('daisy: did not finish');
+  }
+  function idSearchAt(cube, depth, goalFn) {
+    var seq = [];
+    function dfs(dpt, last) {
+      if (dpt === depth) return goalFn(cube);
+      for (var i = 0; i < FACE_MOVES.length; i++) {
+        var m = FACE_MOVES[i], f = m[0];
+        if (f === last) continue;
+        if (last && OPP[last] === f && RANK[f] < RANK[last]) continue;
+        C.apply(cube, m);
+        seq.push(m);
+        var ok = dfs(dpt + 1, f);
+        C.apply(cube, inv(m));
+        if (ok) return true;
+        seq.pop();
+      }
+      return false;
+    }
+    return dfs(0, '') ? seq.slice() : null;
+  }
+
+  /* ---------- step 2: white cross ---------- */
+  function whiteCross(ctx) {
+    var sides = ['g', 'b', 'o', 'r'];
+    for (var guard = 0; guard < 8; guard++) {
+      var pending = sides.filter(function (c) { return !okPiece(ctx.cube, find(ctx.cube, ['w', c])); });
+      if (!pending.length) return;
+      var best = null;
+      pending.forEach(function (c) {
+        var d = dirOf(ctx.cube, c);
+        var t = pick(ctx.cube, UT, function (cc) { var p = find(cc, ['w', c]).p; return p[1] === 1 && p[0] === d[0] && p[2] === d[2]; });
+        if (t === null) throw new Error('cross: edge not on top');
+        var cost = tokCost(t);
+        if (!best || cost < best.cost) best = { c: c, t: t, cost: cost, d: d };
+      });
+      var n = nm(best.c);
+      if (best.t) act(ctx, 'cross', 'Turn the top layer until the white-' + n + ' petal sits right above the ' + n + ' center.', best.t);
+      act(ctx, 'cross', 'Turn the ' + n + ' face twice. The white-' + n + ' edge drops into the white cross.', faceOf(best.d) + '2');
+    }
+    throw new Error('cross: did not finish');
+  }
+
+  /* ---------- step 3: white corners ---------- */
+  function whiteCorners(ctx) {
+    var cc0 = C.centers(ctx.cube);
+    var F = cc0['0,0,1'], R = cc0['1,0,0'], B = cc0['0,0,-1'], L = cc0['-1,0,0'];
+    var list = [[F, R], [R, B], [B, L], [L, F]];
+    list.forEach(function (pr) {
+      var cols = ['w', pr[0], pr[1]];
+      var desc = 'white-' + nm(pr[0]) + '-' + nm(pr[1]) + ' corner';
+      var pairKey = [pr[0], pr[1]].sort().join('');
+      for (var guard = 0; guard < 8; guard++) {
+        var q = find(ctx.cube, cols);
+        if (okPiece(ctx.cube, q)) return;
+        if (q.p[1] === -1) {
+          var t0 = pick(ctx.cube, YR, function (c) { return posIs(find(c, cols), [1, -1, 1]); });
+          if (t0) act(ctx, 'corners', 'The ' + desc + ' is stuck in the bottom layer. Turn the whole cube so it is at the bottom front-right.', t0);
+          act(ctx, 'corners', "Pop it out of the bottom layer with R U R' U'.", ALG.pop);
+          continue;
+        }
+        var t1 = pick(ctx.cube, YR, function (c) { var cc = C.centers(c); return [cc['0,0,1'], cc['1,0,0']].sort().join('') === pairKey; });
+        if (t1 === null) throw new Error('corner: cannot face its spot');
+        if (t1) act(ctx, 'corners', 'Turn the whole cube so the ' + nm(pr[0]) + ' and ' + nm(pr[1]) + ' centers are at the front and the right. The ' + desc + ' belongs in the bottom front-right spot.', t1);
+        var t2 = pick(ctx.cube, UT, function (c) { return posIs(find(c, cols), [1, 1, 1]); });
+        if (t2 === null) throw new Error('corner: not on top');
+        if (t2) act(ctx, 'corners', 'Turn the top layer until the corner sits right above its spot, at the top front-right.', t2);
+        var n = 0, tmp = C.clone(ctx.cube);
+        while (!okPiece(tmp, find(tmp, cols)) && n < 6) { C.apply(tmp, ALG.pop); n++; }
+        if (!okPiece(tmp, find(tmp, cols))) throw new Error('corner: insert failed');
+        act(ctx, 'corners', "Repeat R U R' U' " + n + (n === 1 ? ' time' : ' times') + ' until the white sticker faces down.', repeat(ALG.pop, n));
+      }
+      throw new Error('corner loop');
+    });
+  }
+
+  /* ---------- step 4: middle layer ---------- */
+  function isMid(q) { return q.s.length === 2 && q.s.every(function (t) { return t.c !== 'y' && t.c !== 'w'; }); }
+  function mids(cube) { return cube.filter(isMid); }
+  function midDone(cube) { var cc = C.centers(cube); return mids(cube).every(function (q) { return C.cubieCorrect(q, cc); }); }
+  function planMid(cube, q) {
+    var st = q.s.filter(function (t) { return t.n[1] === 0; })[0], tp = q.s.filter(function (t) { return t.n[1] === 1; })[0];
+    var s = st.c, t = tp.c, cols = [s, t];
+    var y = pick(cube, YR, function (c) { return C.centers(c)['0,0,1'] === s; });
+    if (y === null) throw new Error('mid: center');
+    var c1 = C.clone(cube); C.apply(c1, y);
+    var u = pick(c1, UT, function (c) { return posIs(find(c, cols), [0, 1, 1]); });
+    if (u === null) throw new Error('mid: top');
+    var c2 = C.clone(c1); C.apply(c2, u);
+    var cc = C.centers(c2);
+    var right = cc['1,0,0'] === t;
+    if (!right && cc['-1,0,0'] !== t) throw new Error('mid: side');
+    return { y: y, u: u, right: right, s: s, t: t, cost: tokCost(y) + tokCost(u) };
+  }
+  function middleLayer(ctx) {
+    for (var guard = 0; guard < 16; guard++) {
+      if (midDone(ctx.cube)) return;
+      var top = mids(ctx.cube).filter(function (q) { return q.p[1] === 1; });
+      if (top.length) {
+        var best = null;
+        top.forEach(function (q) { var p = planMid(ctx.cube, q); if (!best || p.cost < best.cost) best = p; });
+        var s = nm(best.s), t = nm(best.t);
+        if (best.y) act(ctx, 'middle', 'Turn the whole cube so the ' + s + ' center faces you.', best.y);
+        if (best.u) act(ctx, 'middle', 'Turn the top layer until the ' + s + '-' + t + ' edge is in front, with its ' + s + ' side above the ' + s + ' center.', best.u);
+        if (best.right) act(ctx, 'middle', 'The top color (' + t + ') matches the center on the right, so the edge goes right: U R U\' R\' U\' F\' U F.', ALG.midR);
+        else act(ctx, 'middle', 'The top color (' + t + ') matches the center on the left, so the edge goes left: U\' L\' U L U F U\' F\'.', ALG.midL);
+        continue;
+      }
+      var cc = C.centers(ctx.cube);
+      var stuck = mids(ctx.cube).filter(function (q) { return q.p[1] === 0 && !C.cubieCorrect(q, cc); });
+      if (!stuck.length) throw new Error('mid: nothing to do');
+      var q0 = stuck[0], cols = q0.s.map(function (t) { return t.c; });
+      var ty = pick(ctx.cube, YR, function (c) { return posIs(find(c, cols), [1, 0, 1]); });
+      if (ty === null) throw new Error('mid: pop');
+      var d = nm(cols[0]) + '-' + nm(cols[1]);
+      if (ty) act(ctx, 'middle', 'The ' + d + ' edge is in the middle layer but in the wrong place. Turn the whole cube so it is at the front-right.', ty);
+      act(ctx, 'middle', 'Pop it out to the top layer with the move-to-the-right algorithm.', ALG.midR);
+    }
+    throw new Error('middle layer: did not finish');
+  }
+
+  /* ---------- last layer, beginner order ---------- */
+  var SLOT = { B: [0, 1, -1], R: [1, 1, 0], F: [0, 1, 1], L: [-1, 1, 0] };
+  function upEdges(c) { return Object.keys(SLOT).filter(function (k) { return C.upSticker(C.at(c, SLOT[k])) === 'y'; }).sort().join(''); }
+  function edgeSlotsMatching(c) {
+    var cc = C.centers(c);
+    return Object.keys(SLOT).filter(function (k) { return C.placed(C.at(c, SLOT[k]), cc); }).sort().join('');
+  }
+  function bestU(c, kind) {
+    var best = { k: 0, m: -1 };
+    for (var k = 0; k < 4; k++) {
+      var t = C.clone(c); C.apply(t, UT[k]);
+      var m = C.placedCount(t, kind);
+      if (m > best.m) best = { k: k, m: m };
+    }
+    return best;
+  }
+  function llCross(ctx, stage) {
+    var guard = 0;
+    while (!C.crossDone(ctx.cube) && guard++ < 6) {
+      var up = upEdges(ctx.cube);
+      if (up === '') { act(ctx, stage, 'Dot: do the cross algorithm. You get an L shape.', ALG.cross); continue; }
+      if (up.length !== 2) throw new Error('cross: odd pattern ' + up);
+      if (up === 'BF' || up === 'LR') {
+        if (up === 'BF') act(ctx, stage, 'Line: turn the top so the line goes left to right.', 'U');
+        act(ctx, stage, 'Line: do the cross algorithm.', ALG.cross);
+      } else {
+        var k = 0;
+        for (; k < 4; k++) { var t = C.clone(ctx.cube); C.apply(t, UT[k]); if (upEdges(t) === 'BL') break; }
+        if (k === 4) throw new Error('cross: cannot align L');
+        if (k) act(ctx, stage, 'L shape: turn the top until the L points to the back and the left.', UT[k]);
+        act(ctx, stage, 'L shape: do the shortcut algorithm. You get the cross.', ALG.crossL);
+      }
+    }
+    if (!C.crossDone(ctx.cube)) throw new Error('cross failed');
+  }
+  function llEdges(ctx) {
+    var guard = 0;
+    while (!C.edgesPlaced(ctx.cube) && guard++ < 6) {
+      var b = bestU(ctx.cube, 2);
+      if (b.m === 4) { act(ctx, 'lledges', 'Turn the top layer until all four edges match their centers.', UT[b.k]); break; }
+      if (b.m === 2) {
+        if (b.k) act(ctx, 'lledges', 'Turn the top layer until two edges match their centers.', UT[b.k]);
+        var m = edgeSlotsMatching(ctx.cube);
+        if (m === 'BF' || m === 'LR') {
+          act(ctx, 'lledges', 'The matching edges are across from each other: do the algorithm once, from any side.', ALG.edges);
+        } else {
+          var j = 0;
+          for (; j < 4; j++) { var t = C.clone(ctx.cube); C.apply(t, YR[j]); if (edgeSlotsMatching(t) === 'BR') break; }
+          if (j === 4) throw new Error('edges: cannot rotate');
+          if (j) act(ctx, 'lledges', 'Turn the whole cube so the two matching edges are at the back and the right.', YR[j]);
+          act(ctx, 'lledges', 'Swap the front and left edges.', ALG.edges);
+        }
+      } else {
+        act(ctx, 'lledges', 'No pair matches: do the algorithm once, from any side.', ALG.edges);
+      }
+    }
+    if (!C.edgesPlaced(ctx.cube)) throw new Error('edges failed');
+  }
+  function llCorners(ctx) {
+    var guard = 0;
+    while (!C.cornersPlaced(ctx.cube) && guard++ < 6) {
+      if (C.placedCount(ctx.cube, 3) === 1) {
+        var j = 0;
+        for (; j < 4; j++) { var t = C.clone(ctx.cube); C.apply(t, YR[j]); if (C.placed(C.at(t, [1, 1, 1]), C.centers(t))) break; }
+        if (j === 4) throw new Error('corners: cannot rotate');
+        if (j) act(ctx, 'llcorners', 'Turn the whole cube so the correct corner is at the front-right.', YR[j]);
+        act(ctx, 'llcorners', guard > 1 ? 'Not finished yet: do the algorithm again.' : 'Move the other three corners.', ALG.corners);
+      } else {
+        act(ctx, 'llcorners', 'No corner is right: do the algorithm once, from any side.', ALG.corners);
+      }
+    }
+    if (!C.cornersPlaced(ctx.cube)) throw new Error('corners failed');
+  }
+  function llTwist(ctx) {
+    for (var i = 0; i < 4; i++) {
+      var n = 0;
+      while (C.sticker(ctx.cube, [1, 1, 1], [0, 1, 0]) !== 'y') { C.apply(ctx.cube, ALG.twist); n++; if (n > 5) throw new Error('twist loop'); }
+      if (n) ctx.segs.push({ stage: 'lltwist', label: 'Corner ' + (i + 1) + ": repeat R' D' R D until yellow faces up (" + n + ' times).', moves: repeat(ALG.twist, n) });
+      act(ctx, 'lltwist', n ? 'Turn only the top layer to bring the next corner to the front-right.' : 'Corner ' + (i + 1) + ' already has yellow on top. Turn the top layer for the next one.', 'U');
+    }
+    var k = 0;
+    for (; k < 4; k++) { var t = C.clone(ctx.cube); C.apply(t, UT[k]); if (C.solved(t)) break; }
+    if (k === 4) throw new Error('twist: not solved');
+    if (k) act(ctx, 'lltwist', 'Last turns of the top layer until the sides match.', UT[k]);
+  }
+
+  /* ---------- last layer, faster (2-look OLL + 2-look PLL) ---------- */
+  function mk(list, extra) {
+    var out = [];
+    ['U', "U'", 'U2'].forEach(function (m) { out.push({ id: m, name: m, moves: m, kind: 'turn', cost: 1 }); });
+    list.forEach(function (a) { out.push({ id: a.id, name: a.name, moves: a.moves, kind: 'alg', cost: a.moves.split(' ').length }); });
+    if (extra) ['y', "y'", 'y2'].forEach(function (m) { out.push({ id: m, name: m, moves: m, kind: 'rot', cost: 1 }); });
+    return out;
+  }
+  /* uniform-cost search over macros, with a binary heap */
+  function plan(cube, macros, goal, keyFn, allowFn, limit) {
+    var heap = [], seen = {}, steps = 0, seq = 0;
+    function push(n) { heap.push(n); var i = heap.length - 1; while (i > 0) { var p = (i - 1) >> 1; if (less(heap[p], heap[i])) break; var t = heap[p]; heap[p] = heap[i]; heap[i] = t; i = p; } }
+    function less(a, b) { return a.cost < b.cost || (a.cost === b.cost && a.seq < b.seq); }
+    function pop() {
+      var top = heap[0], last = heap.pop();
+      if (heap.length) {
+        heap[0] = last; var i = 0;
+        for (;;) { var l = 2 * i + 1, r = l + 1, m = i; if (l < heap.length && less(heap[l], heap[m])) m = l; if (r < heap.length && less(heap[r], heap[m])) m = r; if (m === i) break; var t = heap[m]; heap[m] = heap[i]; heap[i] = t; i = m; }
+      }
+      return top;
+    }
+    var k0 = keyFn(cube); seen[k0] = 0;
+    push({ cube: cube, key: k0, cost: 0, path: [], seq: seq++ });
+    while (heap.length) {
+      var cur = pop();
+      if (cur.cost > seen[cur.key]) continue;
+      if (goal(cur.cube)) return cur.path;
+      if (steps++ > (limit || 6000)) break;
+      for (var i = 0; i < macros.length; i++) {
+        var m = macros[i], last = cur.path[cur.path.length - 1];
+        if (last && last.kind === m.kind && m.kind !== 'alg' && m.kind !== 'trig') continue;
+        if (allowFn && !allowFn(cur.cube, m)) continue;
+        var c2 = C.clone(cur.cube); C.apply(c2, m.moves);
+        var k = keyFn(c2), cost = cur.cost + m.cost;
+        if (seen[k] === undefined || cost < seen[k]) { seen[k] = cost; push({ cube: c2, key: k, cost: cost, path: cur.path.concat([m]), seq: seq++ }); }
+      }
+    }
+    return null;
+  }
+  var CSLOT = [[-1, 1, -1], [1, 1, -1], [1, 1, 1], [-1, 1, 1]];
+  var ESLOT = [[0, 1, -1], [1, 1, 0], [0, 1, 1], [-1, 1, 0]];
+  function homeKey(cube, slots) {
+    var out = [];
+    slots.forEach(function (p) {
+      var q = C.at(cube, p), x = 0, z = 0;
+      q.s.forEach(function (t) { var d = dirOf(cube, t.c); x += d[0]; z += d[2]; });
+      out.push(x + ':' + z);
+    });
+    return out.join('|');
+  }
+  function twistKey(cube) {
+    return CSLOT.map(function (p) {
+      var y = C.at(cube, p).s.filter(function (t) { return t.c === 'y'; })[0];
+      return y.n[1] === 1 ? 'u' : y.n[0] !== 0 ? 'x' : 'z';
+    }).join('');
+  }
+  function run(ctx, stage, path, labeler) {
+    path.forEach(function (m, i) { act(ctx, stage, labeler(m, path[i + 1]), m.moves); });
+  }
+  function oll2(ctx) {
+    var macros = mk(OCLL, false);
+    var path = plan(ctx.cube, macros, C.yellowFace, twistKey);
+    if (!path) throw new Error('oll2: no plan');
+    run(ctx, 'oll2', path, function (m) {
+      return m.kind === 'turn' ? 'Turn the top layer until the yellow corners match the picture for this case.' : 'Corner twist, ' + m.name + ': do the algorithm. All corners turn yellow.';
+    });
+    if (!C.yellowFace(ctx.cube)) throw new Error('oll2 failed');
+  }
+  function pll1(ctx) {
+    var macros = mk(PLL1, true);
+    var key = function (c) { return homeKey(c, CSLOT); };
+    var path = plan(ctx.cube, macros, C.cornersPlaced, key);
+    if (!path) throw new Error('pll1: no plan');
+    run(ctx, 'pll1', path, function (m, next) {
+      if (m.kind === 'turn') return 'Turn the top layer so the corners line up with their centers.';
+      if (m.kind === 'rot') return next && next.id === 'a' ? 'Turn the whole cube so the headlights (two matching corners side by side) are at the back.' : 'Turn the whole cube to the angle the next algorithm needs.';
+      return m.id === 'a' ? 'A-perm: three corners swap places. The headlights stay at the back.' : 'Y-perm: two opposite corners swap. Use it when no side has headlights.';
+    });
+    if (!C.cornersPlaced(ctx.cube)) throw new Error('pll1 failed');
+  }
+  function pll2(ctx) {
+    var macros = mk(PLL2, true);
+    var key = function (c) { return homeKey(c, CSLOT) + '#' + homeKey(c, ESLOT); };
+    var path = plan(ctx.cube, macros, C.solved, key);
+    if (!path) throw new Error('pll2: no plan');
+    run(ctx, 'pll2', path, function (m, next) {
+      if (m.kind === 'turn') return 'Turn the top layer to finish: every edge matches its center.';
+      if (m.kind === 'rot') return 'Turn the whole cube to the angle the next algorithm needs.';
+      return 'Edge swap, ' + m.name + ': only the top edges move, the corners stay.';
+    });
+    if (!C.solved(ctx.cube)) throw new Error('pll2 failed');
+  }
+
+
+  /* ---------- CFOP: cross straight on the bottom ---------- */
+  var ESL = [];
+  (function () { for (var x = -1; x <= 1; x++) for (var y = -1; y <= 1; y++) for (var z = -1; z <= 1; z++) if (C.nz([x, y, z]) === 2) ESL.push([x, y, z]); })();
+  function slotIdx(p) { for (var i = 0; i < ESL.length; i++) if (ESL[i][0] === p[0] && ESL[i][1] === p[1] && ESL[i][2] === p[2]) return i; return -1; }
+  function primaryN(p) { return p[1] !== 0 ? [0, p[1], 0] : [0, 0, p[2]]; }
+  function otherN(p) { return p[1] !== 0 ? (p[0] !== 0 ? [p[0], 0, 0] : [0, 0, p[2]]) : [p[0], 0, 0]; }
+  function eq3(a, b) { return a[0] === b[0] && a[1] === b[1] && a[2] === b[2]; }
+  var EMOVE = null;
+  function edgeTables() {
+    if (EMOVE) return EMOVE;
+    EMOVE = FACE_MOVES.map(function (m) {
+      var sp = C.spec(C.parse(m)[0]), t = [];
+      for (var si = 0; si < 12; si++) for (var f = 0; f < 2; f++) {
+        var p = ESL[si].slice(), n = f === 0 ? primaryN(p) : otherN(p);
+        if (C.inLayer({ p: p }, sp)) for (var k = 0; k < sp.quarters; k++) { p = C.rot(p, sp.axis, sp.sgn); n = C.rot(n, sp.axis, sp.sgn); }
+        t[si * 2 + f] = slotIdx(p) * 2 + (eq3(n, primaryN(p)) ? 0 : 1);
+      }
+      return t;
+    });
+    return EMOVE;
+  }
+  function edgeCode(cube, c) {
+    var q = find(cube, ['w', c]), wn = q.s.filter(function (t) { return t.c === 'w'; })[0].n;
+    return slotIdx(q.p) * 2 + (eq3(wn, primaryN(q.p)) ? 0 : 1);
+  }
+  function edgeGoal(cube, c) {
+    var a = dirOf(cube, 'w'), b = dirOf(cube, c);
+    var p = [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+    return slotIdx(p) * 2 + (eq3(a, primaryN(p)) ? 0 : 1);
+  }
+  function bfsTable(goals) {
+    var T = edgeTables(), n = goals.length, size = Math.pow(24, n), d = new Int8Array(size).fill(-1);
+    var start = 0; for (var i = 0; i < n; i++) start = start * 24 + goals[i];
+    d[start] = 0; var q = [start], head = 0;
+    while (head < q.length) {
+      var x = q[head++], parts = [], y = x;
+      for (var j = n - 1; j >= 0; j--) { parts[j] = y % 24; y = (y / 24) | 0; }
+      for (var m = 0; m < T.length; m++) {
+        var z = 0; for (var k = 0; k < n; k++) z = z * 24 + T[m][parts[k]];
+        if (d[z] < 0) { d[z] = d[x] + 1; q.push(z); }
+      }
+    }
+    return d;
+  }
+  function crossSearch(cube, cols) {
+    var T = edgeTables(), n = cols.length;
+    var st = cols.map(function (c) { return edgeCode(cube, c); });
+    var goal = cols.map(function (c) { return edgeGoal(cube, c); });
+    var tabs = [];
+    if (n === 1) tabs.push({ idx: [0], d: bfsTable([goal[0]]) });
+    for (var i = 0; i < n; i++) for (var j = i + 1; j < n; j++) tabs.push({ idx: [i, j], d: bfsTable([goal[i], goal[j]]) });
+    function h(s) {
+      var m = 0;
+      for (var t = 0; t < tabs.length; t++) { var tb = tabs[t], v = tb.idx.length === 1 ? tb.d[s[tb.idx[0]]] : tb.d[s[tb.idx[0]] * 24 + s[tb.idx[1]]]; if (v > m) m = v; }
+      return m;
+    }
+    var path = [];
+    function dfs(s, g, bound, last) {
+      var hv = h(s);
+      if (hv === 0) return true;
+      if (g + hv > bound) return false;
+      for (var mi = 0; mi < FACE_MOVES.length; mi++) {
+        var f = FACE_MOVES[mi][0];
+        if (f === last) continue;
+        if (last && OPP[last] === f && RANK[f] < RANK[last]) continue;
+        var s2 = s.map(function (e) { return T[mi][e]; });
+        path.push(FACE_MOVES[mi]);
+        if (dfs(s2, g + 1, bound, f)) return true;
+        path.pop();
+      }
+      return false;
+    }
+    for (var bound = h(st); bound <= 12; bound++) { path = []; if (dfs(st, 0, bound, '')) return path.slice(); }
+    return null;
+  }
+  function cfopCross(ctx) {
+    var sides = ['g', 'b', 'o', 'r'], done = [];
+    sides.forEach(function (c) { if (okPiece(ctx.cube, find(ctx.cube, ['w', c]))) done.push(c); });
+    for (var guard = 0; guard < 6 && done.length < 4; guard++) {
+      var best = null;
+      sides.forEach(function (c) {
+        if (done.indexOf(c) >= 0) return;
+        var p = crossSearch(ctx.cube, done.concat([c]));
+        if (p && (!best || p.length < best.p.length)) best = { c: c, p: p };
+      });
+      if (!best) throw new Error('cross search failed');
+      var n = nm(best.c);
+      act(ctx, 'fcross', done.length === 0
+        ? 'Start the cross with the white-' + n + ' edge. Put it on the bottom, white facing down, next to the ' + n + ' center.'
+        : 'Next, the white-' + n + ' edge goes home on the bottom. The edges you already placed come back to their spots.', best.p.join(' '));
+      done.push(best.c);
+    }
+    if (done.length < 4) throw new Error('cross unfinished');
+  }
+
+  /* ---------- CFOP: first two layers in pairs ---------- */
+  var TRIG = [
+    { id: 'RUR', moves: "R U R'" }, { id: 'RUiR', moves: "R U' R'" }, { id: 'RU2R', moves: "R U2 R'" },
+    { id: 'FUF', moves: "F' U F" }, { id: 'FUiF', moves: "F' U' F" }, { id: 'FU2F', moves: "F' U2 F" }
+  ];
+  var F2L_MACROS = (function () {
+    var out = [];
+    ['U', "U'", 'U2'].forEach(function (m) { out.push({ id: m, moves: m, kind: 'turn', cost: 1 }); });
+    ['y', "y'", 'y2'].forEach(function (m) { out.push({ id: m, moves: m, kind: 'rot', cost: 1.5 }); });
+    TRIG.forEach(function (t) { out.push({ id: t.id, moves: t.moves, kind: 'trig', cost: 3 }); });
+    return out;
+  })();
+  function pairKey(a, b) { return [a, b].sort().join(''); }
+  function frPair(cube) { var cc = C.centers(cube); return pairKey(cc['0,0,1'], cc['1,0,0']); }
+  function pairDone(cube, pr) { return okPiece(cube, find(cube, ['w', pr[0], pr[1]])) && okPiece(cube, find(cube, [pr[0], pr[1]])); }
+
+  /* compact sticker tracking: a sticker is (position, facing). Macros become lookup tables. */
+  var STK = null;
+  function stickerSpace() {
+    if (STK) return STK;
+    var list = [], index = {};
+    for (var x = -1; x <= 1; x++) for (var y = -1; y <= 1; y++) for (var z = -1; z <= 1; z++) {
+      var p = [x, y, z];
+      if (C.nz(p) < 2) continue;
+      [[x, 0, 0], [0, y, 0], [0, 0, z]].forEach(function (n) { if (n[0] || n[1] || n[2]) { index[p.join() + '/' + n.join()] = list.length; list.push({ p: p, n: n }); } });
+    }
+    STK = { list: list, index: index, cache: {} };
+    return STK;
+  }
+  function tokTable(t) {
+    var S = stickerSpace(), sp = C.spec(C.parse(t)[0]);
+    return S.list.map(function (st) {
+      var p = st.p.slice(), n = st.n.slice();
+      if (C.inLayer({ p: p }, sp)) for (var k = 0; k < sp.quarters; k++) { p = C.rot(p, sp.axis, sp.sgn); n = C.rot(n, sp.axis, sp.sgn); }
+      return S.index[p.join() + '/' + n.join()];
+    });
+  }
+  function macroTable(moves) {
+    var S = stickerSpace();
+    if (S.cache[moves]) return S.cache[moves];
+    var arr = S.list.map(function (_, i) { return i; });
+    C.parse(moves).forEach(function (t) { var T = S.cache['#' + t.name] || (S.cache['#' + t.name] = tokTable(t.name)); arr = arr.map(function (i) { return T[i]; }); });
+    S.cache[moves] = arr;
+    return arr;
+  }
+  function stickerIdx(p, n) { return stickerSpace().index[p.join() + '/' + n.join()]; }
+  function addv(a, b, c) { return [a[0] + b[0] + (c ? c[0] : 0), a[1] + b[1] + (c ? c[1] : 0), a[2] + b[2] + (c ? c[2] : 0)]; }
+  function planPairFast(cube, pr, solved) {
+    var NS = stickerSpace().list.length;
+    var cq = find(cube, ['w', pr[0], pr[1]]), eq = find(cube, [pr[0], pr[1]]);
+    var cs = stickerIdx(cq.p, cq.s.filter(function (t) { return t.c === 'w'; })[0].n);
+    var es = stickerIdx(eq.p, eq.s.filter(function (t) { return t.c === pr[0]; })[0].n);
+    var dw = dirOf(cube, 'w'), da = dirOf(cube, pr[0]), db = dirOf(cube, pr[1]);
+    var Y = macroTable('y'), hc = [stickerIdx(addv(dw, da, db), dw)], he = [stickerIdx(addv(da, db), da)];
+    for (var r = 1; r < 4; r++) { hc[r] = Y[hc[r - 1]]; he[r] = Y[he[r - 1]]; }
+    var frp = [], tc = C.clone(cube);
+    for (r = 0; r < 4; r++) { frp[r] = frPair(tc); C.apply(tc, 'y'); }
+    var macros = F2L_MACROS.map(function (m) { return { m: m, T: macroTable(m.moves), dr: m.moves === 'y' ? 1 : m.moves === 'y2' ? 2 : m.moves === "y'" ? 3 : 0 }; });
+    var best = new Float64Array(NS * NS * 4).fill(Infinity), prev = new Int32Array(NS * NS * 4).fill(-1), via = new Int16Array(NS * NS * 4).fill(-1);
+    var heap = [];
+    function push(c, k) { heap.push([c, k]); var i = heap.length - 1; while (i > 0) { var p = (i - 1) >> 1; if (heap[p][0] <= heap[i][0]) break; var t = heap[p]; heap[p] = heap[i]; heap[i] = t; i = p; } }
+    function pop() { var top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; var i = 0; for (;;) { var l = 2 * i + 1, rr = l + 1, m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (rr < heap.length && heap[rr][0] < heap[m][0]) m = rr; if (m === i) break; var t = heap[m]; heap[m] = heap[i]; heap[i] = t; i = m; } } return top; }
+    var k0 = (cs * NS + es) * 4; best[k0] = 0; push(0, k0);
+    while (heap.length) {
+      var top = pop(), cost = top[0], k = top[1];
+      if (cost > best[k]) continue;
+      var rr0 = k % 4, e0 = ((k - rr0) / 4) % NS, c0 = Math.floor(k / (4 * NS));
+      if (c0 === hc[rr0] && e0 === he[rr0]) {
+        var path = [];
+        while (prev[k] >= 0) { path.unshift(macros[via[k]].m); k = prev[k]; }
+        return path;
+      }
+      var lastKind = via[k] >= 0 ? macros[via[k]].m.kind : '';
+      for (var i = 0; i < macros.length; i++) {
+        var mm = macros[i];
+        if (mm.m.kind === lastKind && mm.m.kind !== 'trig') continue;
+        if (mm.m.kind === 'trig' && solved.indexOf(frp[rr0]) >= 0) continue;
+        var k2 = (mm.T[c0] * NS + mm.T[e0]) * 4 + (rr0 + mm.dr) % 4, c2 = cost + mm.m.cost;
+        if (c2 < best[k2]) { best[k2] = c2; prev[k2] = k; via[k2] = i; push(c2, k2); }
+      }
+    }
+    return null;
+  }
+  function f2lPairs(ctx) {
+    var cc0 = C.centers(ctx.cube);
+    var F = cc0['0,0,1'], R = cc0['1,0,0'], B = cc0['0,0,-1'], L = cc0['-1,0,0'];
+    var pairs = [[F, R], [R, B], [B, L], [L, F]];
+    var solved = [];
+    for (var guard = 0; guard < 8; guard++) {
+      pairs.forEach(function (pr) { var k = pairKey(pr[0], pr[1]); if (solved.indexOf(k) < 0 && pairDone(ctx.cube, pr)) solved.push(k); });
+      var pending = pairs.filter(function (pr) { return solved.indexOf(pairKey(pr[0], pr[1])) < 0; });
+      if (!pending.length) return;
+      var best = null;
+      pending.forEach(function (pr) {
+        var p = planPairFast(ctx.cube, pr, solved);
+        if (p) {
+          var cost = p.reduce(function (a, m) { return a + m.cost; }, 0);
+          if (!best || cost < best.cost) best = { pr: pr, path: p, cost: cost };
+        }
+      });
+      if (!best) throw new Error('f2l: no plan');
+      var name = 'white-' + nm(best.pr[0]) + '-' + nm(best.pr[1]), target = pairKey(best.pr[0], best.pr[1]);
+      best.path.forEach(function (m, i) {
+        var lastOne = i === best.path.length - 1, label;
+        if (m.kind === 'turn') label = 'Turn the top layer to line up the ' + name + ' pair.';
+        else if (m.kind === 'rot') {
+          var t = C.clone(ctx.cube); C.apply(t, m.moves);
+          label = frPair(t) === target ? 'Turn the whole cube so the empty ' + nm(best.pr[0]) + '-' + nm(best.pr[1]) + ' slot is at the front-right.' : 'Turn the whole cube so the stuck piece is at the front-right.';
+        } else if (lastOne) label = 'Insert the pair: ' + m.moves + '. The corner and edge drop in together.';
+        else if (frPair(ctx.cube) !== target) label = 'Take the stuck piece out of this slot with ' + m.moves + '.';
+        else label = 'Set up the pair with ' + m.moves + '. Corner and edge move next to each other.';
+        act(ctx, 'f2l', label, m.moves);
+      });
+      if (!pairDone(ctx.cube, best.pr)) throw new Error('f2l: pair not solved');
+      solved.push(target);
+    }
+    throw new Error('f2l unfinished');
+  }
+
+
+  /* ---------- pattern-database search over tracked stickers ---------- */
+  var AXIS = { U: 'y', D: 'y', R: 'x', L: 'x', r: 'x', M: 'x', F: 'z', B: 'z' };
+  var ARANK = { U: 0, D: 1, R: 0, L: 1, r: 2, M: 3, F: 0, B: 1 };
+  function moveSet(letters) { var out = []; letters.forEach(function (f) { ['', "'", '2'].forEach(function (m) { out.push(f + m); }); }); return out; }
+  var MS_ALL = moveSet(['U', 'R', 'F', 'L', 'B', 'D']), MS_RRUM = moveSet(['R', 'r', 'U', 'M']), MS_MU = moveSet(['M', 'U']);
+  var LMAP = null;
+  function LM() {
+    if (LMAP) return LMAP;
+    var S = stickerSpace(), loc = [], cIdx = [], eIdx = [];
+    S.list.forEach(function (st, i) { if (C.nz(st.p) === 3) { loc[i] = cIdx.length; cIdx.push(i); } else { loc[i] = eIdx.length; eIdx.push(i); } });
+    LMAP = { loc: loc, cIdx: cIdx, eIdx: eIdx };
+    return LMAP;
+  }
+  var DBC = {};
+  function patternDB(ms, goals) {
+    var key = ms.join(' ') + '|' + goals.join(',');
+    if (DBC[key]) return DBC[key];
+    var L = LM(), k = goals.length, size = Math.pow(24, k), d = new Int8Array(size).fill(-1);
+    var tabs = ms.map(function (m) { return macroTable(m); });
+    var types = goals.map(function (g) { return C.nz(stickerSpace().list[g].p) === 3; });
+    var x0 = 0; for (var i = 0; i < k; i++) x0 = x0 * 24 + L.loc[goals[i]];
+    var q = new Int32Array(size), head = 0, tail = 0, st = new Array(k);
+    d[x0] = 0; q[tail++] = x0;
+    while (head < tail) {
+      var x = q[head++], dx = d[x], y0 = x;
+      for (var j = k - 1; j >= 0; j--) { var l = y0 % 24; y0 = (y0 - l) / 24; st[j] = types[j] ? L.cIdx[l] : L.eIdx[l]; }
+      for (var mi = 0; mi < tabs.length; mi++) {
+        var T = tabs[mi], y = 0;
+        for (var j2 = 0; j2 < k; j2++) y = y * 24 + L.loc[T[st[j2]]];
+        if (d[y] < 0) { d[y] = dx + 1; q[tail++] = y; }
+      }
+    }
+    DBC[key] = d;
+    return d;
+  }
+  function idaPieces(start, goal, ms, dbs, maxD) {
+    var L = LM(), tabs = ms.map(function (m) { return macroTable(m); }), letters = ms.map(function (m) { return m[0]; }), n = start.length;
+    function h(st) {
+      var m = 0;
+      for (var t = 0; t < dbs.length; t++) { var db = dbs[t], x = 0; for (var i = 0; i < db.ix.length; i++) x = x * 24 + L.loc[st[db.ix[i]]]; var v = db.d[x]; if (v > m) m = v; }
+      return m;
+    }
+    var path = [];
+    function dfs(st, g, bound, last) {
+      var hv = h(st);
+      if (hv === 0) return true;
+      if (g + hv > bound) return false;
+      for (var mi = 0; mi < tabs.length; mi++) {
+        var f = letters[mi];
+        if (last && (f === last || (AXIS[f] === AXIS[last] && ARANK[f] < ARANK[last]))) continue;
+        var T = tabs[mi], s2 = new Array(n);
+        for (var i = 0; i < n; i++) s2[i] = T[st[i]];
+        path.push(ms[mi]);
+        if (dfs(s2, g + 1, bound, f)) return true;
+        path.pop();
+      }
+      return false;
+    }
+    for (var b = h(start); b <= maxD; b++) { path = []; if (dfs(start, 0, b, '')) return path.slice(); }
+    return null;
+  }
+  function trackIdx(cube, cols, ref) {
+    var q = find(cube, cols), t = q.s.filter(function (x) { return x.c === ref; })[0];
+    return stickerIdx(q.p, t.n);
+  }
+  function solvePieces(cube, specs, ms, maxD) {
+    var start = specs.map(function (s) { return trackIdx(cube, s.cols, s.ref); });
+    var goal = specs.map(function (s) { return stickerIdx(s.gp, s.gn); });
+    var n = specs.length, dbs = [], i;
+    function db(ix) { return { ix: ix, d: patternDB(ms, ix.map(function (j) { return goal[j]; })) }; }
+    if (n <= 3) { var all = []; for (i = 0; i < n; i++) all.push(i); dbs.push(db(all)); }
+    else {
+      for (i = 0; i < n - 2; i++) dbs.push(db([i, n - 2, n - 1]));
+      var prev = []; for (i = 0; i < Math.min(3, n - 2); i++) prev.push(i);
+      dbs.push(db(prev));
+      if (n - 2 > 3) dbs.push(db([n - 3 - 1 + 1 > 3 ? 3 : 0].concat([n - 2, n - 1]).slice(0, 3)));
+    }
+    return idaPieces(start, goal, ms, dbs, maxD);
+  }
+
+  /* ---------- Claude Blocks ---------- */
+  var DOWN = [0, -1, 0], LEFTN = [-1, 0, 0], RIGHTN = [1, 0, 0];
+  function blockSpecs(cc, side) {
+    var X = side === 'L' ? -1 : 1, s = cc[[X, 0, 0].join()], f = cc['0,0,1'], b = cc['0,0,-1'], sn = side === 'L' ? LEFTN : RIGHTN;
+    return {
+      line: { cols: ['w', s], ref: 'w', gp: [X, -1, 0], gn: DOWN },
+      back: [{ cols: [s, b], ref: s, gp: [X, 0, -1], gn: sn }, { cols: ['w', s, b], ref: 'w', gp: [X, -1, -1], gn: DOWN }],
+      front: [{ cols: [s, f], ref: s, gp: [X, 0, 1], gn: sn }, { cols: ['w', s, f], ref: 'w', gp: [X, -1, 1], gn: DOWN }],
+      color: s, f: f, b: b
+    };
+  }
+  function planBlock(cube, side, ms, maxD, fr) {
+    var cc = C.centers(cube);
+    if (fr) { cc = Object.assign({}, cc); cc['0,0,1'] = fr.f; cc['0,0,-1'] = fr.b; }
+    var sp = blockSpecs(cc, side), steps = [], done = [], tmp = C.clone(cube);
+    var p1 = solvePieces(tmp, [sp.line], ms, maxD);
+    if (!p1) return null;
+    steps.push({ part: 'line', moves: p1 }); C.apply(tmp, p1.join(' ')); done.push(sp.line);
+    var order = ['back', 'front'], first = null, firstP = null;
+    order.forEach(function (k) {
+      var p = solvePieces(tmp, done.concat(sp[k]), ms, maxD);
+      if (p && (!firstP || p.length < firstP.length)) { first = k; firstP = p; }
+    });
+    if (!firstP) return null;
+    steps.push({ part: first, moves: firstP }); C.apply(tmp, firstP.join(' ')); done = done.concat(sp[first]);
+    var second = first === 'back' ? 'front' : 'back';
+    var p3 = solvePieces(tmp, done.concat(sp[second]), ms, maxD);
+    if (!p3) return null;
+    steps.push({ part: second, moves: p3 });
+    return { steps: steps, sp: sp, total: p1.length + firstP.length + p3.length };
+  }
+  function blockLabel(side, part, sp, n) {
+    var s = nm(sp.color), f = nm(sp.f), b = nm(sp.b), where = side === 'L' ? 'left' : 'right';
+    if (part === 'line') return (side === 'L' ? 'Left block, part 1: ' : 'Right block, part 1: ') + 'put the white-' + s + ' edge on the bottom ' + where + ', white facing down.' + (side === 'R' ? ' Only R, r, U and M are used, so the left block stays safe.' : '');
+    var c = part === 'back' ? b : f;
+    return (side === 'L' ? 'Left' : 'Right') + ' block, part ' + n + ': pair the white-' + s + '-' + c + ' corner with the ' + s + '-' + c + ' edge and set them on the ' + part + ' of the ' + where + ' side.';
+  }
+  function leftBlock(ctx) {
+    var best = null;
+    YR.forEach(function (rt) {
+      var t = C.clone(ctx.cube); C.apply(t, rt);
+      var p = planBlock(t, 'L', MS_ALL, 11);
+      if (p && (!best || p.total + tokCost(rt) < best.total + tokCost(best.rt))) best = { rt: rt, plan: p, total: p.total };
+    });
+    if (!best) throw new Error('left block: no plan');
+    if (best.rt) act(ctx, 'lblock', 'Look at all four sides and pick the easiest left block. Turn the whole cube so that side is on the left.', best.rt);
+    best.plan.steps.forEach(function (st, i) { act(ctx, 'lblock', blockLabel('L', st.part, best.plan.sp, i + 1), st.moves.join(' ')); });
+  }
+  function rightBlock(ctx) {
+    var p = planBlock(ctx.cube, 'R', MS_RRUM, 14, frame(ctx.cube));
+    if (!p) throw new Error('right block: no plan');
+    p.steps.forEach(function (st, i) { act(ctx, 'rblock', blockLabel('R', st.part, p.sp, i + 1), st.moves.join(' ')); });
+  }
+  function muSearch(cube, goalKind) {
+    var fr = frame(cube), f = fr.f, b = fr.b, l = fr.l, r = fr.r;
+    var edges = [['y', f], ['y', b], ['y', l], ['y', r], ['w', f], ['w', b]];
+    var start = edges.map(function (e) { return trackIdx(cube, e, e[0]); });
+    var S = stickerSpace(), good = S.list.map(function (x) { return x.n[1] !== 0; });
+    var CPOS = [[0, 1, 0], [0, 0, 1], [0, -1, 0], [0, 0, -1]];
+    var yc = 0, ycPos = dirOf(cube, 'y');
+    CPOS.forEach(function (p, i) { if (eq3(p, ycPos)) yc = i; });
+    var tabs = MS_MU.map(function (m) { return macroTable(m); });
+    var cnext = MS_MU.map(function (m) {
+      var sp = C.spec(C.parse(m)[0]);
+      return CPOS.map(function (p) { var v = p.slice(); if (C.inLayer({ p: v }, sp)) for (var k = 0; k < sp.quarters; k++) v = C.rot(v, sp.axis, sp.sgn); for (var i = 0; i < 4; i++) if (eq3(CPOS[i], v)) return i; return -1; });
+    });
+    var DF = stickerIdx([0, -1, 1], DOWN), DB = stickerIdx([0, -1, -1], DOWN);
+    function isGoal(st, c) {
+      for (var i = 0; i < 6; i++) if (!good[st[i]]) return false;
+      if (goalKind === 'eo') return c === 0 || c === 2;
+      return c === 0 && st[4] === DF && st[5] === DB;
+    }
+    function key(st, c) { var x = c; for (var i = 0; i < 6; i++) x = x * 48 + st[i]; return x; }
+    var seen = new Map(), q = [{ st: start, c: yc }], head = 0;
+    seen.set(key(start, yc), null);
+    while (head < q.length) {
+      var cur = q[head++];
+      if (isGoal(cur.st, cur.c)) {
+        var path = [], k2 = key(cur.st, cur.c), e;
+        while ((e = seen.get(k2))) { path.unshift(e.m); k2 = e.from; }
+        return path;
+      }
+      for (var mi = 0; mi < tabs.length; mi++) {
+        var T = tabs[mi], s2 = cur.st.map(function (x) { return T[x]; }), c2 = cnext[mi][cur.c], k = key(s2, c2);
+        if (!seen.has(k)) { seen.set(k, { from: key(cur.st, cur.c), m: MS_MU[mi] }); q.push({ st: s2, c: c2 }); }
+      }
+      if (q.length > 400000) break;
+    }
+    return null;
+  }
+  /* colors of the fixed frame, read from the left block (the M slice centers can be turned) */
+  function frame(cube) {
+    var cc = C.centers(cube);
+    return { f: C.sticker(cube, [-1, -1, 1], [0, 0, 1]), b: C.sticker(cube, [-1, -1, -1], [0, 0, -1]), l: cc['-1,0,0'], r: cc['1,0,0'] };
+  }
+  function badEdges(cube) {
+    var n = 0;
+    cube.forEach(function (q) {
+      if (q.s.length !== 2) return;
+      var yw = q.s.filter(function (t) { return t.c === 'y' || t.c === 'w'; })[0];
+      if (!yw) return;
+      if ((q.p[0] === 0 || q.p[1] === 1) && q.p[1] !== 0 && yw.n[1] === 0) n++;
+    });
+    return n;
+  }
+  function edgeFlip(ctx) {
+    var n = badEdges(ctx.cube);
+    var p = muSearch(ctx.cube, 'eo');
+    if (!p) throw new Error('eo: no plan');
+    act(ctx, 'eo', n ? 'Fix the flipped edges. ' + n + ' edges have their yellow or white sticker on a side. Flip them using only M and U turns.' : 'No flipped edges this time. Just line up the middle with an M turn.', p.join(' '));
+  }
+  function bottomEdges(ctx) {
+    var fr = frame(ctx.cube);
+    var p = muSearch(ctx.cube, 'dfdb');
+    if (!p) throw new Error('dfdb: no plan');
+    act(ctx, 'dfdb', 'Put the white-' + nm(fr.f) + ' and white-' + nm(fr.b) + ' edges into the bottom middle with M and U. Now the first two layers are done and the top edges are already yellow.', p.join(' '));
+  }
+
+  /* ---------- Fast beginner: 3-move corner inserts and a 7-algorithm yellow layer ---------- */
+  var CORNER_MACROS = (function () {
+    var out = [];
+    ['U', "U'", 'U2'].forEach(function (m) { out.push({ id: m, moves: m, kind: 'turn', cost: 1 }); });
+    ['y', "y'", 'y2'].forEach(function (m) { out.push({ id: m, moves: m, kind: 'rot', cost: 1.5 }); });
+    ["R U R'", "R U' R'", "F' U' F", "F' U F", "R U2 R' U' R U R'"].forEach(function (m) { out.push({ id: m, moves: m, kind: 'trig', cost: m.split(' ').length }); });
+    return out;
+  })();
+  function planCornerFast(cube, pr, solved) {
+    var NS = stickerSpace().list.length;
+    var cs = trackIdx(cube, ['w', pr[0], pr[1]], 'w');
+    var dw = dirOf(cube, 'w'), da = dirOf(cube, pr[0]), db = dirOf(cube, pr[1]);
+    var Y = macroTable('y'), hc = [stickerIdx(addv(dw, da, db), dw)];
+    for (var r = 1; r < 4; r++) hc[r] = Y[hc[r - 1]];
+    var frp = [], tc = C.clone(cube);
+    for (r = 0; r < 4; r++) { frp[r] = frPair(tc); C.apply(tc, 'y'); }
+    var macros = CORNER_MACROS.map(function (m) { return { m: m, T: macroTable(m.moves), dr: m.moves === 'y' ? 1 : m.moves === 'y2' ? 2 : m.moves === "y'" ? 3 : 0 }; });
+    var best = new Float64Array(NS * 4).fill(Infinity), prev = new Int32Array(NS * 4).fill(-1), via = new Int16Array(NS * 4).fill(-1);
+    var open = [cs * 4]; best[cs * 4] = 0;
+    while (open.length) {
+      var bi = 0; for (var i = 1; i < open.length; i++) if (best[open[i]] < best[open[bi]]) bi = i;
+      var k = open.splice(bi, 1)[0], rr = k % 4, c0 = (k - rr) / 4;
+      if (c0 === hc[rr]) { var path = []; while (prev[k] >= 0) { path.unshift(macros[via[k]].m); k = prev[k]; } return path; }
+      var lastKind = via[k] >= 0 ? macros[via[k]].m.kind : '';
+      for (var j = 0; j < macros.length; j++) {
+        var mm = macros[j];
+        if (mm.m.kind === lastKind && mm.m.kind !== 'trig') continue;
+        if (mm.m.kind === 'trig' && solved.indexOf(frp[rr]) >= 0) continue;
+        var k2 = mm.T[c0] * 4 + (rr + mm.dr) % 4, c2 = best[k] + mm.m.cost;
+        if (c2 < best[k2]) { if (best[k2] === Infinity) open.push(k2); best[k2] = c2; prev[k2] = k; via[k2] = j; }
+      }
+    }
+    return null;
+  }
+  function fastCorners(ctx) {
+    var cc0 = C.centers(ctx.cube);
+    var F = cc0['0,0,1'], R = cc0['1,0,0'], B = cc0['0,0,-1'], L = cc0['-1,0,0'];
+    var pairs = [[F, R], [R, B], [B, L], [L, F]], solved = [];
+    for (var guard = 0; guard < 8; guard++) {
+      pairs.forEach(function (pr) { var k = pairKey(pr[0], pr[1]); if (solved.indexOf(k) < 0 && okPiece(ctx.cube, find(ctx.cube, ['w', pr[0], pr[1]]))) solved.push(k); });
+      var pending = pairs.filter(function (pr) { return solved.indexOf(pairKey(pr[0], pr[1])) < 0; });
+      if (!pending.length) return;
+      var best = null;
+      pending.forEach(function (pr) {
+        var p = planCornerFast(ctx.cube, pr, solved);
+        if (p) { var cost = p.reduce(function (a, m) { return a + m.cost; }, 0); if (!best || cost < best.cost) best = { pr: pr, path: p, cost: cost }; }
+      });
+      if (!best) throw new Error('fast corners: no plan');
+      var name = 'white-' + nm(best.pr[0]) + '-' + nm(best.pr[1]) + ' corner', target = pairKey(best.pr[0], best.pr[1]);
+      best.path.forEach(function (m, i) {
+        var lastOne = i === best.path.length - 1, label;
+        if (m.kind === 'turn') label = 'Turn the top layer until the ' + name + ' sits right above its spot.';
+        else if (m.kind === 'rot') { var t = C.clone(ctx.cube); C.apply(t, m.moves); label = frPair(t) === target ? 'Turn the whole cube so the ' + name + "'s spot is at the front-right." : 'Turn the whole cube so the stuck corner is at the front-right.'; }
+        else if (lastOne) label = m.moves === "R U R'" ? 'White faces right: R U R\' drops it in.' : m.moves === "F' U' F" ? 'White faces front: F\' U\' F drops it in.' : m.moves === "R U2 R' U' R U R'" ? 'White faces up: R U2 R\' U\' R U R\' turns it and drops it in.' : 'Insert it: ' + m.moves + '.';
+        else if (frPair(ctx.cube) !== target) label = 'This corner is stuck in the bottom. Pop it out with ' + m.moves + '.';
+        else label = 'Set it up with ' + m.moves + '.';
+        act(ctx, 'fbcorners', label, m.moves);
+      });
+      solved.push(target);
+    }
+    throw new Error('fast corners unfinished');
+  }
+  var SUNE2 = OCLL.slice(0, 2), APERM = [PLL1[0]], UPERMS = PLL2.slice(0, 2);
+  function fbOLL(ctx) {
+    var path = plan(ctx.cube, mk(SUNE2, false), C.yellowFace, twistKey);
+    if (!path) throw new Error('fb oll: no plan');
+    var algs = path.filter(function (m) { return m.kind === 'alg'; }).length;
+    run(ctx, 'fboll', path, function (m) {
+      if (m.kind === 'turn') return 'Turn the top layer until the case looks like Sune or Antisune (one yellow corner at the front-left for Sune, back-right for Antisune).';
+      return m.name + (algs > 1 ? ': do it, then look again. Two Sune-family moves can solve every corner case.' : ': do it. All the corners turn yellow.');
+    });
+  }
+  function fbPLL1(ctx) {
+    var path = plan(ctx.cube, mk(APERM, true), C.cornersPlaced, function (c) { return homeKey(c, CSLOT); });
+    if (!path) throw new Error('fb pll1: no plan');
+    run(ctx, 'fbpll1', path, function (m, next) {
+      if (m.kind === 'turn') return 'Turn the top layer so the corners line up with their centers.';
+      if (m.kind === 'rot') return 'Turn the whole cube so the headlights (two matching corners) are at the back.';
+      return 'A-perm: three corners swap. If there are no headlights, do it once from any side and look again.';
+    });
+  }
+  function fbPLL2(ctx) {
+    var path = plan(ctx.cube, mk(UPERMS, true), C.solved, function (c) { return homeKey(c, CSLOT) + '#' + homeKey(c, ESLOT); });
+    if (!path) throw new Error('fb pll2: no plan');
+    run(ctx, 'fbpll2', path, function (m) {
+      if (m.kind === 'turn') return 'Turn the top layer to finish.';
+      if (m.kind === 'rot') return 'Turn the whole cube so the solved edge is at the back.';
+      return m.name + ': three edges swap. If no edge is solved, do one U-perm from any side and look again.';
+    });
+  }
+
+  /* ---------- drivers ---------- */
+  function lastLayer(ctx, mode) {
+    if (mode === 'fast') { llCross(ctx, 'oll1'); oll2(ctx); pll1(ctx); pll2(ctx); }
+    else if (mode === 'fastbeg') { llCross(ctx, 'oll1'); fbOLL(ctx); fbPLL1(ctx); fbPLL2(ctx); }
+    else { llCross(ctx, 'llcross'); llEdges(ctx); llCorners(ctx); llTwist(ctx); }
+  }
+  function stagesOf(segs) {
+    var out = [];
+    segs.forEach(function (s) { if (out.indexOf(s.stage) < 0) out.push(s.stage); });
+    return out;
+  }
+  function solveFull(cube, mode) {
+    var ctx = makeCtx(C.clone(cube)); ctx.mode = mode;
+    orient(ctx);
+    if (mode === 'cfop') { cfopCross(ctx); f2lPairs(ctx); lastLayer(ctx, 'fast'); }
+    else if (mode === 'fastbeg') { cfopCross(ctx); fastCorners(ctx); middleLayer(ctx); llCross(ctx, 'oll1'); fbOLL(ctx); fbPLL1(ctx); fbPLL2(ctx); }
+    else if (mode === 'blocks') { leftBlock(ctx); rightBlock(ctx); edgeFlip(ctx); bottomEdges(ctx); oll2(ctx); pll1(ctx); pll2(ctx); }
+    else { daisy(ctx); whiteCross(ctx); whiteCorners(ctx); middleLayer(ctx); lastLayer(ctx, mode || 'beginner'); }
+    if (!C.solved(ctx.cube)) throw new Error('not solved');
+    return { segments: ctx.segs, final: ctx.cube };
+  }
+  function solveLast(cube, mode) {
+    var ctx = makeCtx(C.clone(cube));
+    lastLayer(ctx, mode || 'beginner');
+    if (!C.solved(ctx.cube)) throw new Error('not solved');
+    return { segments: ctx.segs, final: ctx.cube };
+  }
+
+
+  /* ---------- Upgrade page: mix and match steps ---------- */
+  var UPOS = { B: 'back', F: 'front', L: 'left', R: 'right' };
+  function begCross(ctx) {
+    var guard = 0, alg = ALG.cross;
+    while (!C.crossDone(ctx.cube) && guard++ < 6) {
+      var up = upEdges(ctx.cube);
+      if (up === '') { act(ctx, 'bcross', 'Only the yellow center: do F R U R\' U\' F\'. You get an L shape.', alg); continue; }
+      if (up === 'LR') { act(ctx, 'bcross', 'Yellow line going left to right: do F R U R\' U\' F\'. The cross is done.', alg); continue; }
+      if (up === 'BF') { act(ctx, 'bcross', 'The line goes front to back. Turn the top so it goes left to right.', 'U'); continue; }
+      var k = 0, ok = -1;
+      for (var pass = 0; pass < 2 && ok < 0; pass++) for (k = 0; k < 4; k++) { var t = C.clone(ctx.cube); C.apply(t, UT[k]); if (pass === 0 && upEdges(t) !== 'BL') continue; var t2 = C.clone(t); C.apply(t2, alg); var u2 = upEdges(t2); if (u2 === 'LR' || u2 === 'BF' || u2 === 'BFLR') { ok = k; break; } }
+      if (ok < 0) throw new Error('beg cross: no L setup');
+      var t3 = C.clone(ctx.cube); C.apply(t3, UT[ok]); var at = upEdges(t3).split('').map(function (c) { return UPOS[c]; }).join(' and ');
+      if (ok) act(ctx, 'bcross', 'L shape: turn the top so the L points to the ' + at + '.', UT[ok]);
+      act(ctx, 'bcross', 'Do F R U R\' U\' F\'. The L becomes a line.', alg);
+    }
+    if (!C.crossDone(ctx.cube)) throw new Error('beg cross failed');
+  }
+  function flipTwist(ctx) {
+    act(ctx, 'lltwist', 'Flip the whole cube upside down: white on top, yellow on the bottom.', 'z2');
+    for (var i = 0; i < 4; i++) {
+      var n = 0;
+      while (C.sticker(ctx.cube, [1, -1, 1], [0, -1, 0]) !== 'y') { C.apply(ctx.cube, ALG.pop); n++; if (n > 5) throw new Error('flip twist loop'); }
+      if (n) ctx.segs.push({ stage: 'lltwist', label: 'Corner ' + (i + 1) + " at the bottom front-right: repeat R U R' U' until yellow faces down (" + n + ' times). The cube looks messy in between, that is normal.', moves: repeat(ALG.pop, n) });
+      if (i < 3) act(ctx, 'lltwist', n ? 'Turn only the bottom layer to bring the next corner to the front-right.' : 'Corner ' + (i + 1) + ' already has yellow down. Turn only the bottom layer to the next one.', 'D');
+    }
+    var k = 0, DT = ['', 'D', "D'", 'D2'];
+    for (; k < 4; k++) { var t = C.clone(ctx.cube); C.apply(t, DT[k]); if (C.solved(t)) break; }
+    if (k === 4) throw new Error('flip twist: not solved');
+    if (k) act(ctx, 'lltwist', 'Turn the bottom layer until every side matches.', DT[k]);
+  }
+  var UA_RU = { id: 'ua', name: 'Ua', moves: "R U' R U R U R U' R' U' R2" }, UB_RU = { id: 'ub', name: 'Ub', moves: "R2 U R U R' U' R' U' R' U R'" };
+  var AB = { id: 'ab', name: 'A-perm backwards', moves: "R2 B2 R F R' B2 R F' R" };
+  function plPLL(ctx, cornerSet, edgeSet, stageC, stageE) {
+    var p1 = plan(ctx.cube, mk(cornerSet, true), C.cornersPlaced, function (c) { return homeKey(c, CSLOT); });
+    if (!p1) throw new Error('pll corners: no plan');
+    run(ctx, stageC, p1, function (m, next) {
+      if (m.kind === 'turn') return 'Turn the top layer so the corners line up with their centers.';
+      if (m.kind === 'rot') return next && next.id === 'ab' ? 'Turn the whole cube so the headlights are on the right.' : next && next.id === 'a' ? 'Turn the whole cube so the headlights (two matching corners) are at the back.' : 'Turn the whole cube to the angle the next algorithm needs.';
+      if (m.id === 'a') return cornerSet.length === 1 ? 'A-perm: three corners swap. No headlights? Do it once from any side, then look again.' : 'A-perm: headlights at the back. Three corners swap.';
+      if (m.id === 'ab') return 'A-perm backwards: headlights on the right. One algorithm instead of the A-perm twice.';
+      return 'Y-perm: no headlights anywhere, so two opposite corners swap in one go.';
+    });
+    var p2 = plan(ctx.cube, mk(edgeSet, true), C.solved, function (c) { return homeKey(c, CSLOT) + '#' + homeKey(c, ESLOT); });
+    if (!p2) throw new Error('pll edges: no plan');
+    run(ctx, stageE, p2, function (m) {
+      if (m.kind === 'turn') return 'Turn the top layer to finish: every side matches.';
+      if (m.kind === 'rot') return edgeSet.length === 2 ? 'Turn the whole cube so the solved side is at the back.' : 'Turn the whole cube to the angle the next algorithm needs.';
+      if (m.id === 'ua') return 'Ua: the front edge belongs on the right. Three edges cycle.';
+      if (m.id === 'ub') return 'Ub: the front edge belongs on the left. Three edges cycle.';
+      if (m.id === 'h') return 'H-perm: opposite edges swap, both pairs at once.';
+      return 'Z-perm: neighbouring edges swap, both pairs at once.';
+    });
+  }
+  function solveCustom(cube, o) {
+    var ctx = makeCtx(C.clone(cube));
+    ctx.mode = o.cross === 'daisy' ? 'beginner' : 'cfop';
+    orient(ctx);
+    if (o.cross === 'daisy') { daisy(ctx); whiteCross(ctx); } else cfopCross(ctx);
+    if (o.f2l === 'pairs') f2lPairs(ctx);
+    else { if (o.corners === 'fast') fastCorners(ctx); else whiteCorners(ctx); middleLayer(ctx); }
+    if (o.ycross === 'beg') begCross(ctx); else llCross(ctx, 'oll1');
+    if (o.oll === 'beg') { llEdges(ctx); llCorners(ctx); flipTwist(ctx); }
+    else {
+      if (o.oll === 'sune') fbOLL(ctx); else oll2(ctx);
+      if (o.pll === 'ap') plPLL(ctx, [PLL1[0]], [UA_RU, UB_RU], 'fbpll1', 'fbpll2');
+      else plPLL(ctx, [PLL1[0], AB, PLL1[1]], [UA_RU, UB_RU, PLL2[2], PLL2[3]], 'pll1', 'pll2');
+    }
+    if (!C.solved(ctx.cube)) throw new Error('not solved');
+    return { segments: ctx.segs, final: ctx.cube };
+  }
+
+  /* ---------- checking a painted cube ---------- */
+  function validate(f) {
+    var cols = ['y', 'w', 'g', 'b', 'o', 'r'], cnt = {};
+    for (var i = 0; i < f.length; i++) { if (cols.indexOf(f[i]) < 0) return 'Some stickers have no color yet.'; cnt[f[i]] = (cnt[f[i]] || 0) + 1; }
+    for (var k = 0; k < cols.length; k++) if (cnt[cols[k]] !== 9) return 'Each color needs exactly 9 stickers. ' + nm(cols[k]) + ' has ' + (cnt[cols[k]] || 0) + '.';
+    var cube = C.fromFacelets(f), cc = C.centers(cube);
+    var seen = {}, centers = Object.keys(cc).map(function (k2) { return cc[k2]; });
+    if (centers.slice().sort().join('') !== cols.slice().sort().join('')) return 'The six center stickers must be six different colors.';
+    var opp = {};
+    [[[0, 1, 0], [0, -1, 0]], [[1, 0, 0], [-1, 0, 0]], [[0, 0, 1], [0, 0, -1]]].forEach(function (pr) {
+      var a = cc[pr[0].join()], b = cc[pr[1].join()]; opp[a] = b; opp[b] = a;
+    });
+    if (opp.y !== 'w') return 'Yellow and white must be on opposite faces.';
+    for (var j = 0; j < cube.length; j++) {
+      var q = cube[j];
+      if (q.s.length < 2) continue;
+      var cs = q.s.map(function (t) { return t.c; });
+      for (var a = 0; a < cs.length; a++) for (var b = a + 1; b < cs.length; b++) if (cs[a] === cs[b] || opp[cs[a]] === cs[b]) return 'One piece has two stickers that cannot be on the same piece. Check the colors again.';
+      var key2 = cs.slice().sort().join('');
+      if (seen[key2]) return 'The same piece shows up twice. Check the colors again.';
+      seen[key2] = 1;
+    }
+    return null;
+  }
+
+  return {
+    ALG: ALG, STAGE_NAME: STAGE_NAME, OCLL: OCLL, PLL1: PLL1, PLL2: PLL2,
+    solveFull: solveFull, solveLast: solveLast, solveCustom: solveCustom, validate: validate, stagesOf: stagesOf,
+    _p: { solvePieces: solvePieces, frame: frame, badEdges: badEdges, leftBlock: leftBlock, rightBlock: rightBlock, muSearch: muSearch, cfopCross: cfopCross, f2lPairs: f2lPairs, pairDone: pairDone, upEdges: upEdges, isPetal: isPetal, makeCtx: makeCtx, orient: orient, daisy: daisy, whiteCross: whiteCross, whiteCorners: whiteCorners, middleLayer: middleLayer, llCross: llCross, oll2: oll2, pll1: pll1, pll2: pll2, homeKey: homeKey, plan: plan, mk: mk, CSLOT: CSLOT, ESLOT: ESLOT, PLL2: PLL2 }
+  };
+})(typeof Cube !== 'undefined' ? Cube : require('./core.js'));
+
+
+</script>
+<script>
+(function(){
+var C=Cube;
+var clean=function(a){return a.replace(/[()]/g,' ').replace(/×3/g,'').replace(/\s+/g,' ').trim();};
+function stateFor(a){return C.fromSetup(C.invert(clean(a)));}
+function S(k,v){var p='sc1.'+k;try{if(v===undefined){var r=localStorage.getItem(p);return r==null?null:JSON.parse(r);}localStorage.setItem(p,JSON.stringify(v));}catch(e){return null;}}
+
+/* ---------- data (every case checked on the cube model) ---------- */
+var SETS=[
+ {id:'pairs',name:'Pairs',long:'Step 2 · Pairs',info:'Hold the empty slot at front-right: green in front, orange on the right. The corner sits above the slot. Each pair has a mirror twin.'},
+ {id:'top',name:'Yellow top',long:'Step 3 · Yellow top',info:'First the cross (top 3), then the corners (next 7). Grey means "not yellow".'},
+ {id:'finish',name:'Finish',long:'Step 4 · Finish',info:'First the corners (headlights), then the edges.'},
+ {id:'speed',name:'Speed-ups',long:'Speed-ups for sub-20',info:'Learn these after the rest feel easy. Each one replaces two algorithms with one.'}
+];
+var A=[
+ {id:'p1',set:'pairs',name:'Pair 1',alg:"R U R'",see:'White faces right. Edge at the back, green on top.',tip:'The 3-move insert. Most pairs end with this.'},
+ {id:'p2',set:'pairs',name:'Pair 2',alg:"F' U' F",see:'White faces front. Edge on the left, orange on top.',free:'Mirror of Pair 1'},
+ {id:'p3',set:'pairs',name:'Pair 3',alg:"U R U' R'",see:'White faces front. Edge on the right, green on top.',tip:'Pair is already joined. Lift, place, done.'},
+ {id:'p4',set:'pairs',name:'Pair 4',alg:"U' F' U F",see:'White faces right. Edge in front, orange on top.',free:'Mirror of Pair 3'},
+ {id:'p5',set:'pairs',name:'Pair 5',alg:"(U' R U R') U2 (R U' R')",see:'White faces front. Edge at the back, green on top.',tip:'Hide the corner, move the edge over, insert.'},
+ {id:'p6',set:'pairs',name:'Pair 6',alg:"(U F' U' F) U2 (F' U F)",see:'White faces right. Edge on the left, orange on top.',free:'Mirror of Pair 5'},
+ {id:'p7',set:'pairs',name:'Pair 7',alg:"(U' R U2 R') U2 (R U' R')",see:'White faces front. Edge on the left, green on top.'},
+ {id:'p8',set:'pairs',name:'Pair 8',alg:"(U F' U2 F) U2 (F' U F)",see:'White faces right. Edge at the back, orange on top.',free:'Mirror of Pair 7'},
+ {id:'p9',set:'pairs',name:'Pair 9',alg:"(R U2 R') U' (R U R')",see:'White on top. Edge on the right, green on top.',tip:'White on top: turn it sideways first with R U2 R\'.'},
+ {id:'p10',set:'pairs',name:'Pair 10',alg:"(F' U2 F) U (F' U' F)",see:'White on top. Edge in front, orange on top.',free:'Mirror of Pair 9'},
+ {id:'p11',set:'pairs',name:'Pair 11',alg:"U (R U2 R') U (R U' R')",see:'White on top. Edge at the back, green on top.'},
+ {id:'p12',set:'pairs',name:'Pair 12',alg:"U' (F' U2 F) U' (F' U F)",see:'White on top. Edge on the left, orange on top.',free:'Mirror of Pair 11'},
+ {id:'p13',set:'pairs',name:'Pair 13',alg:"(U R U' R') (U' F' U F)",see:'Corner is already in its slot. Edge in front, green facing you.',tip:'The old middle-layer move. Use it when only the edge is missing.'},
+ {id:'p14',set:'pairs',name:'Pair 14',alg:"(U' F' U F) (U R U' R')",see:'Corner is already in its slot. Edge on the right, orange facing right.',free:'Mirror of Pair 13'},
+
+ {id:'line',set:'top',name:'Cross: line',alg:"F (R U R' U') F'",see:'A yellow line. Hold it left to right.',mode:'edges'},
+ {id:'lsh',set:'top',name:'Cross: L-shape',alg:"F (U R U' R') F'",see:'A yellow L. Hold it at the back-left.',mode:'edges',free:'The line algorithm with the inside moves shifted by one'},
+ {id:'dot',set:'top',name:'Cross: dot',alg:"F (R U R' U') F' f (R U R' U') f'",see:'Only the center is yellow.',mode:'edges',free:'The line algorithm, then the same with a lowercase f'},
+ {id:'sune',set:'top',name:'Sune',alg:"(R U R' U) (R U2 R')",see:'One yellow corner, front-left. Front-right corner shows yellow to you.',mode:'oll',tip:'Say it: "up, up, up-two".'},
+ {id:'anti',set:'top',name:'Antisune',alg:"(R U2 R') (U' R U' R')",see:'One yellow corner, back-right. Front-left corner shows yellow to you.',mode:'oll',free:'Sune backwards'},
+ {id:'hc',set:'top',name:'H corners',alg:"F (R U R' U') (R U R' U') (R U R' U') F'",see:'No yellow corners on top. Two yellows face front, two face back.',mode:'oll',tip:'The line algorithm with the trigger 3 times.'},
+ {id:'pi',set:'top',name:'Pi',alg:"R U2 (R2 U') (R2 U') R2 U2 R",see:'No yellow corners on top. Two yellows on the left, facing left.',mode:'oll'},
+ {id:'uc',set:'top',name:'Headlights',alg:"R2 D (R' U2 R) D' (R' U2 R')",see:'Back two corners yellow. Front two show yellow to you.',mode:'oll'},
+ {id:'tc',set:'top',name:'T',alg:"(r U R' U') (r' F R F')",see:'Right two corners yellow. Left ones show yellow front and back.',mode:'oll'},
+ {id:'lc',set:'top',name:'Bowtie',alg:"(F R' F' r) (U R U' r')",see:'Two yellow corners on a diagonal. Front-left shows yellow to you.',mode:'oll',free:'T backwards'},
+
+ {id:'aa',set:'finish',name:'A-perm',alg:"R' F R' B2 R F' R' B2 R2",see:'Headlights on the back.',mode:'pll',tip:'No headlights anywhere? Do it once from any side, then look again.'},
+ {id:'ab',set:'finish',name:'A-perm, backwards',alg:"R2 B2 R F R' B2 R F' R",see:'Headlights on the right.',mode:'pll',free:'A-perm backwards. No more doing A twice'},
+ {id:'ua',set:'finish',name:'Ua',alg:"(R U' R U) (R U R U') (R' U' R2)",see:'Solved bar at the back. Front edge matches the right side.',mode:'pll'},
+ {id:'ub',set:'finish',name:'Ub',alg:"(R2 U R U) (R' U' R' U') (R' U R')",see:'Solved bar at the back. Front edge matches the left side.',mode:'pll',free:'Ua backwards'},
+ {id:'hp',set:'finish',name:'H-perm',alg:"M2 U M2 U2 M2 U M2",see:'Every edge sits opposite its home. Hold it any way.',mode:'pll',tip:'M2 then U, three times, with U2 in the middle.'},
+ {id:'zp',set:'finish',name:'Z-perm',alg:"M2 U M U2 M2 U2 M U' M2",see:'Edges swap with their neighbors. Front edge matches the left side.',mode:'pll'},
+
+ {id:'yp',set:'speed',name:'Y-perm',alg:"F (R U' R' U') (R U R' F') (R U R' U') (R' F R F')",see:'No headlights on any side. Replaces A-perm twice.',mode:'pll'},
+ {id:'tp',set:'speed',name:'T-perm',alg:"(R U R' U') (R' F R2 U') (R' U' R U) (R' F')",see:'Headlights on the left. Fixes corners and edges at once.',mode:'pll'},
+ {id:'jb',set:'speed',name:'Jb-perm',alg:"(R U R' F') (R U R' U') (R' F R2 U') R'",see:'A solid bar of 3 on the left.',mode:'pll'},
+ {id:'ja',set:'speed',name:'Ja-perm',alg:"(L' U' L F) (L' U' L U) (L F' L2 U L)",see:'A solid bar of 3 on the right.',mode:'pll'}
+];
+var BY={};A.forEach(function(a){BY[a.id]=a;a.mode=a.mode||'f2l';});
+var SHORTS=[
+ {t:'Mirror pairs',d:'Every pair on the right has a twin. Swap R for F\' (and R\' for F), and U for U\'.',ex:"R U R'  →  F' U' F",g:'Learn 7, get 14'},
+ {t:'Antisune is Sune backwards',d:'Read Sune from the end and flip every prime.',ex:"R U R' U R U2 R'  →  R U2 R' U' R U' R'",g:'Learn 1, get 2'},
+ {t:'Bowtie is T backwards',d:'Same trick on the corner case with two diagonal yellows.',ex:"r U R' U' r' F R F'  →  F R' F' r U R U' r'",g:'Learn 1, get 2'},
+ {t:'Ub is Ua backwards',d:'One edge algorithm covers both directions.',ex:"R U' R U R U R U' R' U' R2  →  R2 U R U R' U' R' U' R' U R'",g:'Learn 1, get 2'},
+ {t:'Headlights on the right? A backwards',d:'Instead of doing the A-perm twice, do it in reverse once.',ex:"R' F R' B2 R F' R' B2 R2  →  R2 B2 R F R' B2 R F' R",g:'Saves 9 moves'},
+ {t:'Line, L and dot share one shape',d:'L-shape is the line algorithm with the inside shifted. Dot is the line, then the line with a lowercase f.',ex:"F R U R' U' F'  /  F U R U' R' F'",g:'Learn 1, get 3'},
+ {t:'H corners is the line, three times',d:'Put the trigger (R U R\' U\') three times between F and F\'.',ex:"F (R U R' U') ×3 F'",g:'Nothing new to learn'},
+ {t:'Repeats bring it back',d:'If you get lost: A-perm 3 times or the trigger 6 times returns the cube to where it started.',ex:"(R U R' U') ×6 = nothing",g:'Free undo'}
+];
+
+/* ---------- pictures ---------- */
+var TOK={y:'y',w:'w',g:'g',b:'b',r:'r',o:'o'};
+function cls(c){return 's-'+(TOK[c]||'x');}
+function topSVG(cube,mode){
+  var t=C.topView(cube),o='<svg viewBox="-16 -16 122 122" aria-hidden="true"><rect x="-2" y="-2" width="94" height="94" rx="9" class="s-body"/>';
+  var f=function(c){ if(mode==='pll') return cls(c); return c==='y'?'s-y':'s-x'; };
+  for(var r=0;r<3;r++)for(var c=0;c<3;c++){var col=t.grid[r][c];
+    var k=(mode==='edges'&&(r!==1&&c!==1))?'s-x':f(col);
+    o+='<rect x="'+(c*30+2)+'" y="'+(r*30+2)+'" width="26" height="26" rx="4" class="'+k+'"/>';}
+  for(var i=0;i<3;i++){
+    var side=function(col){return (mode==='edges'&&i!==1)?'s-x':f(col);};
+    o+='<rect x="'+(i*30+3)+'" y="-13" width="24" height="8" rx="3" class="'+side(t.back[i])+'"/>';
+    o+='<rect x="'+(i*30+3)+'" y="95" width="24" height="8" rx="3" class="'+side(t.front[i])+'"/>';
+    o+='<rect x="-13" y="'+(i*30+3)+'" width="8" height="24" rx="3" class="'+side(t.left[i])+'"/>';
+    o+='<rect x="95" y="'+(i*30+3)+'" width="8" height="24" rx="3" class="'+side(t.right[i])+'"/>';
+  }
+  return o+'</svg>';
+}
+var K=30;
+function P(x,y,z){return [((x-z)*0.866*K).toFixed(1),((-y+(x+z)*0.5)*K).toFixed(1)];}
+function poly(pts,c){return '<polygon points="'+pts.map(function(p){return P(p[0],p[1],p[2]).join(',');}).join(' ')+'" class="'+c+'"/>';}
+function isoSVG(cube,mode){
+  var h=0.44,o='<svg viewBox="-82 -92 164 184" aria-hidden="true">';
+  var L=1.53;
+  o+=poly([[-L,L,-L],[L,L,-L],[L,L,L],[-L,L,L]],'s-body');
+  o+=poly([[-L,L,L],[L,L,L],[L,-L,L],[-L,-L,L]],'s-body');
+  o+=poly([[L,L,L],[L,L,-L],[L,-L,-L],[L,-L,L]],'s-body');
+  var keep=function(q){ if(mode!=='f2l') return true; if(q.s.length===1) return true; return C.colorsKey(q).indexOf('y')<0; };
+  for(var a=-1;a<=1;a++)for(var b=-1;b<=1;b++){
+    var q,c;
+    q=C.at(cube,[a,1,b]); c=C.sticker(cube,[a,1,b],[0,1,0]); c=keep(q)?cls(c):'s-x';
+    o+=poly([[a-h,1.5,b-h],[a+h,1.5,b-h],[a+h,1.5,b+h],[a-h,1.5,b+h]],c);
+    q=C.at(cube,[a,-b,1]); c=C.sticker(cube,[a,-b,1],[0,0,1]); c=keep(q)?cls(c):'s-x';
+    o+=poly([[a-h,-b+h,1.5],[a+h,-b+h,1.5],[a+h,-b-h,1.5],[a-h,-b-h,1.5]],c);
+    q=C.at(cube,[1,-b,-a]); c=C.sticker(cube,[1,-b,-a],[1,0,0]); c=keep(q)?cls(c):'s-x';
+    o+=poly([[1.5,-b+h,-a+h],[1.5,-b+h,-a-h],[1.5,-b-h,-a-h],[1.5,-b-h,-a+h]],c);
+  }
+  return o+'</svg>';
+}
+function caseSVG(a){var s=stateFor(a.alg);return a.mode==='f2l'?isoSVG(s,'f2l'):topSVG(s,a.mode);}
+function algHTML(a){return a.replace(/\(([^)]*)\)/g,'<i>(</i>$1<i>)</i>');}
+
+/* ---------- status ---------- */
+var ST=S('status')||{};
+function status(id){return ST[id]||'new';}
+function setStatus(id,v){ST[id]=v;S('status',ST);refreshCounts();var card=document.querySelector('.card[data-id="'+id+'"]');if(card)paintCard(card,id);}
+function inMain(a){return a.set!=='speed';}
+function refreshCounts(){
+  var main=A.filter(inMain),known=main.filter(function(a){return status(a.id)==='know';}).length;
+  document.getElementById('progTxt').textContent=known+' of '+main.length+' known';
+  document.getElementById('progFill').style.width=(100*known/main.length)+'%';
+  document.getElementById('hKnow').textContent=main.length;
+  document.getElementById('hLearn').textContent=main.filter(function(a){return !a.free;}).length;
+  ['pairs','top','finish'].forEach(function(s){var l=A.filter(function(a){return a.set===s;});
+    document.getElementById('m-'+s).textContent=l.length+' cases · learn '+l.filter(function(a){return !a.free;}).length+' →';});
+}
+
+/* ---------- tabs ---------- */
+var TABS=['learn','upgrade','algs','practice','timer','compete'];
+function go(t){ if(TABS.indexOf(t)<0)t='learn';
+  document.querySelectorAll('section[data-tab]').forEach(function(s){s.hidden=s.dataset.tab!==t;});
+  document.querySelectorAll('nav button').forEach(function(b){b.setAttribute('aria-current',b.dataset.go===t?'page':'false');});
+  S('tab',t); try{history.replaceState(null,'','#'+t);}catch(e){}
+  if(t==='practice'&&!cur)nextCard();if(t==='upgrade'&&window.upgradeShown)setTimeout(window.upgradeShown,30); window.scrollTo(0,0);
+}
+document.addEventListener('click',function(e){var b=e.target.closest('[data-go]');if(b){go(b.dataset.go);return;}
+  var s=e.target.closest('.step[data-set]');if(s){algFilter=s.dataset.set;renderAlgs();go('algs');}});
+
+/* ---------- learn tab ---------- */
+document.getElementById('shorts').innerHTML=SHORTS.map(function(s){return '<div class="short"><span class="gain">'+s.g+'</span><b>'+s.t+'</b><p>'+s.d+'</p><div class="mono">'+s.ex+'</div></div>';}).join('');
+
+/* ---------- algorithms tab ---------- */
+var algFilter=S('algFilter')||'all';
+function renderAlgs(){
+  S('algFilter',algFilter);
+  var chips=[{id:'all',name:'All'}].concat(SETS).concat([{id:'mine',name:'Learning'}]);
+  document.getElementById('algChips').innerHTML=chips.map(function(c){return '<button class="chip" data-f="'+c.id+'" aria-pressed="'+(algFilter===c.id)+'">'+c.name+'</button>';}).join('');
+  var out='';
+  SETS.forEach(function(set){
+    var list=A.filter(function(a){return a.set===set.id&&(algFilter==='all'||algFilter===set.id||(algFilter==='mine'&&status(a.id)==='learn'));});
+    if(!list.length)return;
+    out+='<div class="groupHead"><h2>'+set.long+'</h2><p>'+set.info+'</p></div>';
+    list.forEach(function(a){
+      out+='<article class="card" data-id="'+a.id+'"><div class="pic">'+caseSVG(a)+'</div><div class="info"><h3>'+a.name+'</h3>'+(a.free?'<span class="free">Free: '+a.free+'</span>':'')+'<p class="see">'+a.see+'</p></div>'+
+       '<div class="alg">'+algHTML(a.alg)+'</div>'+(a.tip?'<p class="tip">'+a.tip+'</p>':'')+
+       '<div class="act"><button class="small" data-play="'+a.id+'">Watch it</button><div class="seg" role="group" aria-label="How well you know it"><button data-v="new">New</button><button data-v="learn">Learning</button><button data-v="know">Know it</button></div></div></article>';
+    });
+  });
+  if(!out)out='<p class="empty" style="grid-column:1/-1">Nothing marked "Learning" yet. Tap "Learning" on any card to add it here and to your flashcards.</p>';
+  document.getElementById('algGrid').innerHTML=out;
+  document.querySelectorAll('.card').forEach(function(c){paintCard(c,c.dataset.id);});
+}
+function paintCard(card,id){card.dataset.status=status(id);card.querySelectorAll('.seg button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.v===status(id));});}
+document.getElementById('algChips').addEventListener('click',function(e){var b=e.target.closest('[data-f]');if(!b)return;algFilter=b.dataset.f;renderAlgs();});
+document.getElementById('algGrid').addEventListener('click',function(e){
+  var p=e.target.closest('[data-play]');if(p){openPlayer(BY[p.dataset.play]);return;}
+  var v=e.target.closest('.seg button');if(v){setStatus(v.closest('.card').dataset.id,v.dataset.v);}
+});
+
+/* ---------- 3D cube view with smooth turns ---------- */
+var HEX={y:'#FFD500',w:'#FFFFFF',g:'#06A04F',b:'#1259D9',r:'#D8262D',o:'#FF7B00'};
+var REDUCE=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function View(canvas){
+  var v={cube:C.newCube(),yaw:-0.62,pitch:0.52,anim:null,busy:false};
+  var ctx=canvas.getContext('2d'),size=0,dpr=1;
+  function fit(){var w=canvas.clientWidth||200;dpr=Math.min(window.devicePixelRatio||1,3);if(Math.abs(w-size)<1&&canvas.width===Math.round(w*dpr))return;size=w;canvas.width=Math.round(w*dpr);canvas.height=Math.round(w*dpr);draw();}
+  function rotAxis(p,axis,a){var c=Math.cos(a),s=Math.sin(a),x=p[0],y=p[1],z=p[2];
+    if(axis===0)return [x,y*c-z*s,y*s+z*c]; if(axis===1)return [x*c+z*s,y,-x*s+z*c]; return [x*c-y*s,x*s+y*c,z];}
+  function cam(p){var cy=Math.cos(v.yaw),sy=Math.sin(v.yaw),cp=Math.cos(v.pitch),sp=Math.sin(v.pitch);
+    var x1=p[0]*cy+p[2]*sy,z1=-p[0]*sy+p[2]*cy;var y2=p[1]*cp-z1*sp,z2=p[1]*sp+z1*cp;return [x1,y2,z2];}
+  var FACES=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+  function quad(c,n,h){ // corners of a square on face n of cubie centered c, half-size h, at distance 0.5
+    var a=n[0]?[0,1,0]:[1,0,0],b=n[2]?[0,1,0]:(n[0]?[0,0,1]:[0,0,1]); if(n[1]){a=[1,0,0];b=[0,0,1];}
+    var o=[c[0]+n[0]*0.5,c[1]+n[1]*0.5,c[2]+n[2]*0.5];var pts=[];
+    [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(function(k){pts.push([o[0]+(a[0]*k[0]+b[0]*k[1])*h,o[1]+(a[1]*k[0]+b[1]*k[1])*h,o[2]+(a[2]*k[0]+b[2]*k[1])*h]);});
+    return pts;}
+  function draw(){
+    if(!size)return; var S=size*dpr, sc=S/5.4;
+    ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,S,S);
+    ctx.lineJoin='round';
+    var an=v.anim,sp=an&&an.sp,ang=an?an.t*an.total:0;
+    var camAxis=sp?cam(FACES[sp.axis*2]):null;
+    var items=v.cube.map(function(q){var mv=sp&&C.inLayer(q,sp);var slab=0;
+      if(sp&&!mv){slab=(q.p[sp.axis]<Math.min.apply(null,sp.layers||[0]))?-1:1;}
+      var tf=function(p){return mv?rotAxis(p,sp.axis,ang):p;};
+      return {q:q,mv:mv,slab:mv?0:slab,tf:tf,d:cam(tf(q.p))[2]};});
+    items.sort(function(A,B){
+      if(sp&&A.slab!==B.slab){var dir=camAxis[2]>0?1:-1;return (A.slab-B.slab)*dir;}
+      return A.d-B.d;});
+    items.forEach(function(it){var q=it.q;
+      FACES.forEach(function(n){var nn=cam(it.tf(n));if(nn[2]<=0.001)return;
+        var body=quad(q.p,n,0.5).map(function(p){return cam(it.tf(p));});
+        poly(body,'#111318',sc,S,0.015);
+        var st=null;for(var k=0;k<q.s.length;k++){var t=q.s[k];if(t.n[0]===n[0]&&t.n[1]===n[1]&&t.n[2]===n[2])st=t;}
+        if(st){var pts=quad(q.p,n,0.42).map(function(p){var w=[p[0]+n[0]*0.004,p[1]+n[1]*0.004,p[2]+n[2]*0.004];return cam(it.tf(w));});
+          var shade=0.78+0.22*nn[2];poly(pts,shadeHex(HEX[st.c],shade),sc,S,0.06);}
+      });
+    });
+  }
+  function poly(pts,fill,sc,S,round){ctx.beginPath();pts.forEach(function(p,i){var x=S/2+p[0]*sc,y=S/2-p[1]*sc;if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y);});ctx.closePath();
+    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=fill;ctx.lineWidth=round*sc;ctx.stroke();}
+  function shadeHex(h,f){var n=parseInt(h.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255;return 'rgb('+Math.round(r*f)+','+Math.round(g*f)+','+Math.round(b*f)+')';}
+  v.set=function(cube){v.cube=C.clone(cube);v.anim=null;draw();};
+  v.turn=function(m,ms){return new Promise(function(res){
+    var tok=C.parse(m)[0],sp=C.spec(tok);var total=sp.sgn*sp.quarters*Math.PI/2;
+    if(REDUCE||ms<=0){C.applyTok(v.cube,tok);draw();res();return;}
+    v.busy=true;var t0=performance.now(),dur=ms*(sp.quarters===2?1.45:1);
+    v.anim={sp:sp,total:total,t:0};
+    (function step(now){var t=Math.min(1,(now-t0)/dur);v.anim.t=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;draw();
+      if(t<1)requestAnimationFrame(step);else{v.anim=null;C.applyTok(v.cube,tok);v.busy=false;draw();res();}})(t0);
+  });};
+  v.draw=draw;v.fit=fit;
+  // drag to look around
+  var drag=null,lastTap=0;
+  canvas.addEventListener('pointerdown',function(e){drag={x:e.clientX,y:e.clientY,yaw:v.yaw,pitch:v.pitch};try{canvas.setPointerCapture(e.pointerId);}catch(_){}
+    var now=Date.now();if(now-lastTap<300){v.yaw=-0.62;v.pitch=0.52;draw();}lastTap=now;});
+  canvas.addEventListener('pointermove',function(e){if(!drag)return;v.yaw=drag.yaw+(e.clientX-drag.x)*0.012;v.pitch=Math.max(-1.35,Math.min(1.35,drag.pitch+(e.clientY-drag.y)*0.012));draw();});
+  ['pointerup','pointercancel'].forEach(function(ev){canvas.addEventListener(ev,function(){drag=null;});});
+  if(window.ResizeObserver)new ResizeObserver(fit).observe(canvas);window.addEventListener('resize',fit);
+  setTimeout(fit,0);
+  return v;
+}
+
+/* ---------- player ---------- */
+var SAY={R:'Right side turns up, away from you',"R'":'Right side turns down, toward you',L:'Left side turns down, toward you',"L'":'Left side turns up, away from you',
+ U:'Top turns to the left',"U'":'Top turns to the right',D:'Bottom turns to the right',"D'":'Bottom turns to the left',
+ F:'Front turns clockwise',"F'":'Front turns counterclockwise',B:'Back turns clockwise, seen from behind',"B'":'Back turns counterclockwise, seen from behind',
+ r:'Right two layers turn up',"r'":'Right two layers turn down',f:'Front two layers turn clockwise',"f'":'Front two layers turn counterclockwise',
+ M:'Middle slice turns down, like L',"M'":'Middle slice turns up, like R'};
+function sayMove(m){if(m.slice(-1)==='2'){var b=SAY[m[0]]||m[0];return b.replace(/ turns? /,' turns twice ').replace(/,.*$/,'').replace(/ (up|down|to the left|to the right|clockwise)$/,'');}return SAY[m]||m;}
+function toks(a){return clean(a).split(' ').filter(Boolean);}
+function chunks(a){var out=[],re=/\(([^)]*)\)|([^()\s]+)/g,m,loose=null;
+  while((m=re.exec(a))){if(m[1]!=null){loose=null;out.push(m[1].trim().split(/\s+/));}else{if(!loose){loose=[];out.push(loose);}loose.push(m[2]);}}return out;}
+var pl={a:null,moves:[],i:0,playing:false,speed:S('speed')||1,view:null,token:0};
+function pView(){if(!pl.view)pl.view=View(document.getElementById('pCanvas'));return pl.view;}
+function caseCube(){return stateFor(pl.a.alg);}
+function cubeAt(i){var c=caseCube();for(var k=0;k<i;k++)C.apply(c,pl.moves[k]);return c;}
+function paintPlayer(){
+  var n=pl.moves.length,cur=pl.i<n?pl.moves[pl.i]:null;
+  var started=pl.playing||pl.i>0||pl.moving;
+  document.getElementById('pMove').textContent=pl.i>=n?'Done':(started?cur:'Start');
+  document.getElementById('pSay').textContent=pl.i>=n?'Solved. Play it again or try it on your cube.':(!started?'This is the case. Press Play, or ▶ for one move.':sayMove(cur));
+  var k=0;document.getElementById('pMoves').innerHTML=chunks(pl.a.alg).map(function(ch){return '<span class="ch">'+ch.map(function(m){var j=k++;return '<button data-j="'+j+'" class="'+(j<pl.i?'done':j===pl.i?'cur':'')+'">'+m+'</button>';}).join('')+'</span>';}).join('');
+  document.getElementById('pPlay').textContent=pl.playing?'Pause':(pl.i>=n?'Replay':'Play');
+  document.querySelectorAll('#pSpeed button').forEach(function(b){b.setAttribute('aria-pressed',+b.dataset.s===pl.speed);});
+}
+function dur(){return 520/pl.speed;}
+function stepF(){if(pl.i>=pl.moves.length||pView().busy)return Promise.resolve(false);var m=pl.moves[pl.i];pl.moving=true;paintPlayer();
+  return pView().turn(m,dur()).then(function(){pl.moving=false;pl.i++;paintPlayer();return true;});}
+function stepB(){if(pl.i<=0||pView().busy)return Promise.resolve(false);var m=C.invert(pl.moves[pl.i-1]);pl.i--;paintPlayer();
+  return pView().turn(m,dur()).then(function(){paintPlayer();return true;});}
+function stopPlay(){pl.playing=false;pl.token++;paintPlayer();}
+function wait(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function play(){
+  if(pl.i>=pl.moves.length){pl.i=0;pView().set(caseCube());}
+  pl.playing=true;var tok=++pl.token;paintPlayer();
+  (function loop(){ if(tok!==pl.token)return;
+    if(pl.i>=pl.moves.length){ if(document.getElementById('pLoop').checked){wait(1100).then(function(){if(tok!==pl.token)return;pl.i=0;pView().set(caseCube());paintPlayer();wait(500).then(loop);});return;}
+      pl.playing=false;paintPlayer();return;}
+    stepF().then(function(){wait(110/pl.speed).then(loop);});
+  })();
+}
+function openPlayer(a){pl.a=a;pl.moves=toks(a.alg);pl.i=0;pl.playing=false;pl.token++;
+  document.getElementById('pTitle').textContent=a.name;document.getElementById('sheet').hidden=false;
+  var v=pView();v.fit();v.set(caseCube());paintPlayer();document.getElementById('pPlay').focus();}
+function closePlayer(){stopPlay();document.getElementById('sheet').hidden=true;}
+document.getElementById('pClose').onclick=closePlayer;
+document.getElementById('sheet').addEventListener('click',function(e){if(e.target.id==='sheet')closePlayer();});
+document.getElementById('pReset').onclick=function(){stopPlay();pl.i=0;pView().set(caseCube());paintPlayer();};
+document.getElementById('pBack').onclick=function(){if(pl.playing)stopPlay();stepB();};
+document.getElementById('pNext').onclick=function(){if(pl.playing)stopPlay();stepF();};
+document.getElementById('pPlay').onclick=function(){if(pl.playing)stopPlay();else play();};
+document.getElementById('pSpeed').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;pl.speed=+b.dataset.s;S('speed',pl.speed);paintPlayer();});
+document.getElementById('pMoves').addEventListener('click',function(e){var b=e.target.closest('[data-j]');if(!b||pView().busy)return;stopPlay();pl.i=+b.dataset.j;pView().set(cubeAt(pl.i));paintPlayer();});
+document.addEventListener('keydown',function(e){if(document.getElementById('sheet').hidden)return;
+  if(e.key==='Escape')closePlayer();
+  else if(e.code==='Space'&&e.target.tagName!=='BUTTON'){e.preventDefault();document.getElementById('pPlay').click();}
+  else if(e.key==='ArrowRight'){e.preventDefault();document.getElementById('pNext').click();}
+  else if(e.key==='ArrowLeft'){e.preventDefault();document.getElementById('pBack').click();}});
+
+/* ---------- hero loop ---------- */
+(function(){
+  var heroList=['sune','p5','ua','tc','p9','aa'],h=0,view=View(document.getElementById('heroCanvas'));
+  function load(){var a=BY[heroList[h%heroList.length]];document.getElementById('heroAlg').textContent=a.name+': '+clean(a.alg);view.set(stateFor(a.alg));return toks(a.alg);}
+  var mv=load();
+  if(REDUCE)return;
+  function visible(){return !document.hidden&&!document.getElementById('learn').hidden&&document.getElementById('sheet').hidden;}
+  var i=0;
+  (function loop(){
+    if(!visible()){setTimeout(loop,600);return;}
+    if(i<mv.length){view.turn(mv[i++],420).then(function(){setTimeout(loop,90);});return;}
+    setTimeout(function(){h++;mv=load();i=0;setTimeout(loop,700);},1500);
+  })();
+})();
+
+/* ---------- practice ---------- */
+var prSel=S('prSel')||['finish'];var cur=null,last=null,shown=false,score=S('score')||{ok:0,miss:0};
+function prList(){return A.filter(function(a){return prSel.indexOf(a.set)>=0||(prSel.indexOf('mine')>=0&&status(a.id)==='learn');});}
+function renderPrChips(){var chips=SETS.concat([{id:'mine',name:'Learning'}]);
+  document.getElementById('prChips').innerHTML=chips.map(function(c){return '<button class="chip" data-p="'+c.id+'" aria-pressed="'+(prSel.indexOf(c.id)>=0)+'">'+c.name+'</button>';}).join('');}
+document.getElementById('prChips').addEventListener('click',function(e){var b=e.target.closest('[data-p]');if(!b)return;var id=b.dataset.p,i=prSel.indexOf(id);
+  if(i>=0){if(prSel.length>1)prSel.splice(i,1);}else prSel.push(id);S('prSel',prSel);renderPrChips();nextCard();});
+function nextCard(){
+  var list=prList();shown=false;
+  if(!list.length){cur=null;document.getElementById('flash').innerHTML='<h3>No cards here yet</h3><p class="empty">Mark some algorithms as "Learning" in the Algorithms tab, or pick another set above.</p>';return;}
+  var bag=[];list.forEach(function(a){var w=status(a.id)==='know'?1:3;if(list.length>1&&last&&a.id===last)w=0;for(var k=0;k<w;k++)bag.push(a);});
+  if(!bag.length)bag=list;
+  cur=bag[Math.floor(Math.random()*bag.length)];last=cur.id;drawCard();
+}
+function drawCard(){var a=cur;var set=SETS.filter(function(s){return s.id===a.set;})[0];
+  var h='<span class="label">'+set.name+'</span><div class="pic">'+caseSVG(a)+'</div><p class="empty" style="margin:0">'+a.see+'</p>';
+  if(!shown)h+='<h3>What is the algorithm?</h3><div class="row"><button class="btn pri" id="fShow">Show answer</button><button class="btn" id="fSkip">Skip</button></div>';
+  else h+='<h3>'+a.name+'</h3><div class="ans">'+algHTML(a.alg)+'</div><div class="row"><button class="btn bad" id="fMiss">Missed it</button><button class="btn ok" id="fOk">Got it</button><button class="btn" data-play="'+a.id+'" id="fWatch">Watch it</button></div>';
+  h+='<div class="score">Got it '+score.ok+' · Missed '+score.miss+' · '+(prList().length)+' cards in this set</div>';
+  document.getElementById('flash').innerHTML=h;
+}
+var streak=S('streak')||{};
+document.getElementById('flash').addEventListener('click',function(e){
+  var t=e.target.closest('button');if(!t)return;
+  if(t.id==='fShow'){shown=true;drawCard();document.getElementById('fOk').focus();}
+  else if(t.id==='fSkip'){nextCard();}
+  else if(t.id==='fOk'){score.ok++;streak[cur.id]=(streak[cur.id]||0)+1;if(streak[cur.id]>=3&&status(cur.id)!=='know'){ST[cur.id]='know';S('status',ST);refreshCounts();}S('streak',streak);S('score',score);nextCard();}
+  else if(t.id==='fMiss'){score.miss++;streak[cur.id]=0;ST[cur.id]='learn';S('status',ST);refreshCounts();S('streak',streak);S('score',score);nextCard();}
+  else if(t.dataset.play){openPlayer(BY[t.dataset.play]);}
+});
+
+/* ---------- timer (csTimer-style) ---------- */
+var EVENTS=[
+ {id:'333',name:'3x3x3'},{id:'222',name:'2x2x2'},{id:'444',name:'4x4x4'},{id:'555',name:'5x5x5'},
+ {id:'333oh',name:'3x3x3 One-Handed'},{id:'333bf',name:'3x3x3 Blindfolded'},
+ {id:'pyram',name:'Pyraminx'},{id:'skewb',name:'Skewb'},{id:'minx',name:'Megaminx'}
+];
+var EV={};EVENTS.forEach(function(e){EV[e.id]=e;});
+function rnd(n){return Math.floor(Math.random()*n);}
+function nxnScr(faces,len){ // faces: list of move names with axis info
+  var out=[],last=null,lastAxis=-1,used={};
+  while(out.length<len){var f=faces[rnd(faces.length)];
+    if(f.axis===lastAxis){if(used[f.n])continue;}else{used={};}
+    used[f.n]=1;lastAxis=f.axis;out.push(f.n+['',"'",'2'][rnd(3)]);}
+  return out.join(' ');}
+var F3=[{n:'R',axis:0},{n:'L',axis:0},{n:'U',axis:1},{n:'D',axis:1},{n:'F',axis:2},{n:'B',axis:2}];
+var F4=F3.concat([{n:'Rw',axis:0},{n:'Uw',axis:1},{n:'Fw',axis:2}]);
+var F5=F4.concat([{n:'Lw',axis:0},{n:'Dw',axis:1},{n:'Bw',axis:2}]);
+var F2=[{n:'R',axis:0},{n:'U',axis:1},{n:'F',axis:2}];
+function scr333(){return nxnScr(F3,20);}
+function scrMinx(){var l=[];for(var r=0;r<7;r++){var s=[];for(var k=0;k<5;k++){s.push('R'+(rnd(2)?'++':'--'));s.push('D'+(rnd(2)?'++':'--'));}s.push(rnd(2)?'U':"U'");l.push(s.join(' '));}return l.join('\n');}
+function scrPyra(){var f=['U','L','R','B'],out=[],last='';while(out.length<10){var m=f[rnd(4)];if(m===last)continue;last=m;out.push(m+(rnd(2)?"'":''));}
+  ['u','l','r','b'].forEach(function(t){var k=rnd(3);if(k)out.push(t+(k===2?"'":''));});return out.join(' ');}
+function scrSkewb(){var f=['R','U','L','B'],out=[],last='';while(out.length<9){var m=f[rnd(4)];if(m===last)continue;last=m;out.push(m+(rnd(2)?"'":''));}return out.join(' ');}
+function makeScr(ev){switch(ev){case '222':return nxnScr(F2,10);case '444':return nxnScr(F4,40);case '555':return nxnScr(F5,60);
+  case 'pyram':return scrPyra();case 'skewb':return scrSkewb();case 'minx':return scrMinx();default:return scr333();}}
+
+/* scramble picture (WCA colors: white top, green front) */
+var WCOL={y:'#FFFFFF',w:'#FFD500',g:'#06A04F',b:'#1259D9',o:'#D8262D',r:'#FF7B00'};
+function netSVG(scr,n){
+  var cube=C.apply(C.newCube(),scr),fl=C.toFacelets(cube),pos={U:[1,0],L:[0,1],F:[1,1],R:[2,1],B:[3,1],D:[1,2]};
+  var idx=n===2?[0,2,6,8]:[0,1,2,3,4,5,6,7,8],cell=n===2?15:10,gap=4,fs=cell*n;
+  var o='<svg viewBox="-2 -2 '+(4*fs+3*gap+4)+' '+(3*fs+2*gap+4)+'" role="img" aria-label="Scramble picture">';
+  C.FACES.forEach(function(f,fi){var p=pos[f],ox=p[0]*(fs+gap),oy=p[1]*(fs+gap);
+    idx.forEach(function(k,j){var r=Math.floor(j/n),c=j%n,col=fl[fi*9+k];
+      o+='<rect x="'+(ox+c*cell)+'" y="'+(oy+r*cell)+'" width="'+(cell-1)+'" height="'+(cell-1)+'" rx="1.5" fill="'+WCOL[col]+'" stroke="#1B1F27" stroke-width=".6"/>';});});
+  return o+'</svg>';}
+
+/* data */
+var TS=S('timer')||null;
+function newSession(name,ev){return {id:Date.now().toString(36)+rnd(1e4),name:name,ev:ev||'333',solves:[]};}
+if(!TS||!TS.sessions||!TS.sessions.length){var old=S('times')||[];var s0=newSession('Session 1','333');
+  s0.solves=old.map(function(t){return {t:t.ms,p:0,s:t.scr||'',d:t.at||Date.now()};});TS={sessions:[s0],cur:0};}
+var TSET=Object.assign({insp:true,voice:true,hold:300,update:'all',focus:true,input:'timer',img:true},S('tset')||{});
+function saveT(){S('timer',TS);}
+function ses(){return TS.sessions[TS.cur]||TS.sessions[0];}
+function val(s){return s.p===-1?Infinity:s.t+s.p;}
+function fmtMs(ms){if(ms===Infinity)return 'DNF';if(ms==null||isNaN(ms))return '–';var cs=Math.floor(ms/10),s=Math.floor(cs/100),c=cs%100;
+  if(s<60)return s+'.'+(c<10?'0':'')+c;var m=Math.floor(s/60),ss=s%60;return m+':'+(ss<10?'0':'')+ss+'.'+(c<10?'0':'')+c;}
+function fmtBig(s){return s.p===-1?'DNF':fmtMs(s.t+s.p)+(s.p?'+':'');}
+function fmtS(s){if(s.p===-1)return 'DNF'+(s.t?'('+fmtMs(s.t)+')':'');return fmtMs(s.t+s.p)+(s.p?'+':'');}
+function avgOf(list,mean){ // list of values
+  if(mean){if(list.some(function(v){return v===Infinity;}))return Infinity;return list.reduce(function(a,b){return a+b;},0)/list.length;}
+  var n=list.length,trim=Math.max(1,Math.ceil(n*0.05)),l=list.slice().sort(function(a,b){return a-b;}).slice(trim,n-trim);
+  if(l.some(function(v){return v===Infinity;}))return Infinity;return l.reduce(function(a,b){return a+b;},0)/l.length;}
+function rolling(vals,n,mean){var out=[];for(var i=0;i<vals.length;i++)out.push(i+1>=n?avgOf(vals.slice(i+1-n,i+1),mean):null);return out;}
+function minOf(a){var m=null;a.forEach(function(v){if(v!=null&&(m==null||v<m))m=v;});return m;}
+
+/* scrambles */
+var scrHist=[],scrCur='';
+function newScr(){if(scrCur)scrHist.push(scrCur);if(scrHist.length>20)scrHist.shift();scrCur=makeScr(ses().ev);paintScr();}
+function paintScr(){var el=document.getElementById('tScr');el.textContent=scrCur;el.classList.toggle('long',scrCur.length>120);
+  var ev=ses().ev,img=document.getElementById('tImg');
+  if(!TSET.img){img.innerHTML='';return;}
+  if(ev==='333'||ev==='333oh'||ev==='333bf')img.innerHTML=netSVG(scrCur,3);
+  else if(ev==='222')img.innerHTML=netSVG(scrCur,2);
+  else img.innerHTML='<span class="empty">No scramble picture for this event yet.</span>';}
+
+/* render */
+function renderSessions(){document.getElementById('tSession').innerHTML=TS.sessions.map(function(s,i){return '<option value="'+i+'"'+(i===TS.cur?' selected':'')+'>'+esc(s.name)+' ('+s.solves.length+')</option>';}).join('');
+  document.getElementById('tEvent').innerHTML=EVENTS.map(function(e){return '<option value="'+e.id+'"'+(e.id===ses().ev?' selected':'')+'>'+e.name+'</option>';}).join('');}
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function renderStats(){
+  var sv=ses().solves,vals=sv.map(val);
+  var rows=[['single',1,0],['mo3',3,1],['ao5',5,0],['ao12',12,0],['ao50',50,0],['ao100',100,0]];
+  var r5=rolling(vals,5),r12=rolling(vals,12);
+  var html='';rows.forEach(function(r){var roll=r[1]===1?vals:rolling(vals,r[1],r[2]);if(r[1]>1&&vals.length<r[1]&&r[1]>12)return;
+    var cur=roll.length?roll[roll.length-1]:null,best=minOf(roll);
+    html+='<tr><td>'+r[0]+'</td><td class="'+(cur!=null&&cur===best&&roll.length>1?'pb':'')+'">'+fmtMs(cur)+'</td><td>'+fmtMs(best)+'</td></tr>';});
+  document.getElementById('tStats').innerHTML=html;
+  var ok=vals.filter(function(v){return v!==Infinity;});
+  document.getElementById('tMean').innerHTML='<span>Solves <b>'+ok.length+'/'+vals.length+'</b></span><span>Mean <b>'+(ok.length?fmtMs(ok.reduce(function(a,b){return a+b;},0)/ok.length):'–')+'</b></span>';
+  var best=minOf(vals),out='';
+  for(var i=sv.length-1;i>=0&&i>=sv.length-500;i--){out+='<tr data-i="'+i+'"><td>'+(i+1)+'</td><td class="t'+(vals[i]===best&&best!==Infinity?' best':'')+'">'+fmtS(sv[i])+'</td><td>'+fmtMs(r5[i])+'</td><td>'+fmtMs(r12[i])+'</td></tr>';}
+  document.getElementById('tList').innerHTML=out||'<tr><td colspan="4" style="text-align:center;color:var(--mute);font-family:var(--f-body)">No solves yet</td></tr>';
+  renderLast();renderSessions();
+}
+function renderLast(){var sv=ses().solves,el=document.getElementById('tLast');if(!sv.length||tState!=='idle'){el.innerHTML='';return;}var s=sv[sv.length-1];
+  el.innerHTML='<button data-pen="0" aria-pressed="'+(s.p===0)+'">OK</button><button data-pen="2000" aria-pressed="'+(s.p===2000)+'">+2</button><button data-pen="-1" aria-pressed="'+(s.p===-1)+'">DNF</button><button data-del="1">Delete</button>';}
+document.getElementById('tLast').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var sv=ses().solves;if(!sv.length)return;
+  if(b.dataset.del){if(b.dataset.sure){sv.pop();saveT();renderStats();resetDisplay();}else{b.dataset.sure=1;b.textContent='Sure?';}return;}
+  sv[sv.length-1].p=+b.dataset.pen;saveT();renderStats();tTime.textContent=fmtBig(sv[sv.length-1]);});
+
+/* timer engine */
+var tPad=document.getElementById('tPad'),tTime=document.getElementById('tTime'),tSub=document.getElementById('tSub');
+var tState='idle',tStart=0,iStart=0,raf=0,holdTimer=0,inspPen=0,said={};
+var SUB={idle:function(){return TSET.input==='typing'?'Type your time and press Enter. Examples: 12.34, 1:05.20, DNF':(touchUI?'Touch and hold, then let go to start.':'Hold <b>Space</b>, then let go to start.')+(TSET.insp?' Inspection is on.':'');},
+ hold:'Keep holding…',ready:'Let go to start',run:function(){return touchUI?'Tap to stop':'Press any key to stop';},insp:function(){return 'Inspecting. '+(touchUI?'Touch and hold':'Hold Space')+' when ready. Esc cancels.';},ihold:'Keep holding…',iready:'Let go to start'};
+var touchUI=window.matchMedia&&matchMedia('(hover:none)').matches;
+function setTS(s){tState=s;tPad.dataset.s=s;var t=SUB[s];tSub.innerHTML=typeof t==='function'?t():t;
+  document.body.classList.toggle('timing',TSET.focus&&(s==='run'||s==='insp'||s==='ihold'||s==='iready'));renderLast();}
+function resetDisplay(){var sv=ses().solves;tTime.textContent=sv.length?fmtBig(sv[sv.length-1]):'0.00';tTime.classList.remove('warn');}
+function speak(t){if(!TSET.voice)return;try{var u=new SpeechSynthesisUtterance(t);u.rate=1.1;speechSynthesis.speak(u);}catch(e){}}
+function inspTick(){var e=(performance.now()-iStart)/1000;
+  if(e>=8&&!said[8]){said[8]=1;speak('Eight seconds');} if(e>=12&&!said[12]){said[12]=1;speak('Twelve seconds');}
+  if(e>=17){finish(0,-1);return;}
+  tTime.textContent=e>=15?'+2':String(Math.max(1,Math.ceil(15-e)));tTime.classList.toggle('warn',e>=8);
+  raf=requestAnimationFrame(inspTick);}
+function runTick(){var ms=performance.now()-tStart;tTime.textContent=TSET.update==='all'?fmtMs(ms):TSET.update==='sec'?String(Math.floor(ms/1000)):'Solving';raf=requestAnimationFrame(runTick);}
+function startInsp(){said={};iStart=performance.now();setTS('insp');inspTick();}
+function startRun(){cancelAnimationFrame(raf);tTime.classList.remove('warn');
+  if(TSET.insp){var e=(performance.now()-iStart)/1000;inspPen=e>=17?-1:e>=15?2000:0;}else inspPen=0;
+  tStart=performance.now();setTS('run');runTick();}
+function finish(ms,pen){cancelAnimationFrame(raf);var s={t:Math.floor(ms),p:pen,s:scrCur,d:Date.now()};ses().solves.push(s);saveT();
+  tTime.classList.remove('warn');tTime.textContent=fmtBig(s);setTS('stopped');newScr();renderStats();}
+function cancelTimer(){cancelAnimationFrame(raf);clearTimeout(holdTimer);setTS('idle');resetDisplay();}
+function pressDown(){
+  if(tState==='run'){finish(performance.now()-tStart,inspPen);return;}
+  if(tState==='idle'){if(TSET.insp){setTS('ihold0');return;}setTS('hold');holdTimer=setTimeout(function(){if(tState==='hold')setTS('ready');},TSET.hold);tTime.textContent='0.00';return;}
+  if(tState==='insp'){setTS('ihold');holdTimer=setTimeout(function(){if(tState==='ihold')setTS('iready');},TSET.hold);}
+}
+function pressUp(){
+  if(tState==='stopped'){setTS('idle');return;}
+  if(tState==='ihold0'){startInsp();return;}
+  if(tState==='hold'){clearTimeout(holdTimer);setTS('idle');resetDisplay();return;}
+  if(tState==='ready'){startRun();return;}
+  if(tState==='ihold'){clearTimeout(holdTimer);setTS('insp');return;}
+  if(tState==='iready'){startRun();return;}
+}
+SUB.ihold0='Let go to start inspection';SUB.stopped=function(){return '';};
+function timerActive(){return !document.getElementById('timer').hidden&&document.getElementById('dlg').hidden&&document.getElementById('sheet').hidden;}
+function typingTarget(e){var t=e.target;return t&&(t.tagName==='INPUT'||t.tagName==='SELECT'||t.tagName==='TEXTAREA');}
+document.addEventListener('keydown',function(e){if(!timerActive()||TSET.input==='typing')return;
+  if(e.key==='Escape'&&tState!=='idle'){cancelTimer();return;}
+  if(tState==='run'){e.preventDefault();pressDown();return;}
+  if(typingTarget(e))return;
+  if(e.code==='Space'){e.preventDefault();if(!e.repeat)pressDown();}});
+document.addEventListener('keyup',function(e){if(!timerActive()||TSET.input==='typing')return;
+  if(e.code==='Space'){e.preventDefault();pressUp();}else if(tState==='stopped')setTS('idle');});
+tPad.addEventListener('pointerdown',function(e){if(TSET.input==='typing'||e.target.id==='tType')return;e.preventDefault();pressDown();});
+tPad.addEventListener('pointerup',function(e){if(TSET.input==='typing')return;e.preventDefault();pressUp();});
+tPad.addEventListener('pointercancel',function(){if(tState==='hold'||tState==='ready'){clearTimeout(holdTimer);setTS('idle');resetDisplay();}});
+document.addEventListener('pointerdown',function(e){if(tState==='run'&&!tPad.contains(e.target)){pressDown();}},true);
+
+/* typing mode */
+function parseTyped(t){t=t.trim().toUpperCase();if(t==='DNF')return {t:0,p:-1};var plus=/\+$/.test(t);t=t.replace(/\+$/,'');
+  var ms;if(/^\d+$/.test(t)){var n=+t;ms=t.length<=2?n*10:Math.floor(n/10000)*60000+(n%10000)*10;}
+  else{var m=/^(?:(\d+):)?(\d+)(?:\.(\d{1,3}))?$/.exec(t);if(!m)return null;ms=(+(m[1]||0))*60000+(+m[2])*1000+(m[3]?Math.floor(+(m[3]+'00').slice(0,3)):0);}
+  return {t:ms,p:plus?2000:0};}
+document.getElementById('tType').addEventListener('keydown',function(e){if(e.key!=='Enter')return;var r=parseTyped(this.value);
+  if(!r){tSub.textContent='Could not read that. Try 12.34, 1:05.20 or DNF.';return;}finish(r.t,r.p);this.value='';setTS('idle');});
+function applyInput(){var typing=TSET.input==='typing';document.getElementById('tType').hidden=!typing;tTime.hidden=typing;setTS('idle');resetDisplay();}
+
+/* controls */
+document.getElementById('tNext').onclick=function(){newScr();};
+document.getElementById('tPrev').onclick=function(){if(scrHist.length){scrCur=scrHist.pop();paintScr();}};
+document.getElementById('tCopy').onclick=function(){var b=this;copyText(scrCur,function(ok){b.textContent=ok?'Copied':'Select it';setTimeout(function(){b.textContent='Copy';},1500);});};
+function copyText(t,cb){try{navigator.clipboard.writeText(t).then(function(){cb(true);},function(){cb(false);});}catch(e){cb(false);}}
+document.getElementById('tEvent').onchange=function(){ses().ev=this.value;saveT();newScr();renderSessions();};
+document.getElementById('tSession').onchange=function(){TS.cur=+this.value;saveT();newScr();renderStats();resetDisplay();};
+document.getElementById('tSesNew').onclick=function(){TS.sessions.push(newSession('Session '+(TS.sessions.length+1),ses().ev));TS.cur=TS.sessions.length-1;saveT();newScr();renderStats();resetDisplay();};
+document.getElementById('tList').addEventListener('click',function(e){var r=e.target.closest('tr[data-i]');if(r)solveDlg(+r.dataset.i);});
+
+/* dialogs */
+var dlg=document.getElementById('dlg'),dlgIn=document.getElementById('dlgIn');
+function openDlg(html,bind){dlgIn.innerHTML=html;dlg.hidden=false;bind&&bind(dlgIn);var f=dlgIn.querySelector('button,input,select');f&&f.focus();}
+function closeDlg(){dlg.hidden=true;}
+dlg.addEventListener('click',function(e){if(e.target===dlg||e.target.closest('[data-close]'))closeDlg();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!dlg.hidden)closeDlg();});
+function solveDlg(i){var s=ses().solves[i];if(!s)return;
+  openDlg('<div class="row sp"><h3>Solve '+(i+1)+'</h3><button class="x" data-close aria-label="Close">×</button></div><div class="big">'+fmtS(s)+'</div>'+
+   '<div class="row"><button class="chip" data-p="0" aria-pressed="'+(s.p===0)+'">No penalty</button><button class="chip" data-p="2000" aria-pressed="'+(s.p===2000)+'">+2</button><button class="chip" data-p="-1" aria-pressed="'+(s.p===-1)+'">DNF</button></div>'+
+   '<div><div class="label">Scramble</div><div class="scrBox">'+esc(s.s||'–')+'</div></div><div class="empty">'+new Date(s.d).toLocaleString()+'</div>'+
+   '<div class="row sp"><button class="btn bad" id="dDel">Delete solve</button><button class="btn pri" data-close>Done</button></div>',
+   function(el){el.querySelectorAll('[data-p]').forEach(function(b){b.onclick=function(){s.p=+b.dataset.p;saveT();renderStats();resetDisplay();el.querySelectorAll('[data-p]').forEach(function(x){x.setAttribute('aria-pressed',x===b);});el.querySelector('.big').textContent=fmtS(s);};});
+     el.querySelector('#dDel').onclick=function(){if(this.dataset.sure){ses().solves.splice(i,1);saveT();renderStats();resetDisplay();closeDlg();}else{this.dataset.sure=1;this.textContent='Tap again to delete';}};});}
+document.getElementById('tSesMenu').onclick=function(){var s=ses();
+  openDlg('<div class="row sp"><h3>Session</h3><button class="x" data-close aria-label="Close">×</button></div>'+
+   '<label class="set"><span>Name</span><input class="tin" id="sName" value="'+esc(s.name)+'" maxlength="30"></label>'+
+   '<div class="row"><button class="btn" id="sCopy">Copy times</button><button class="btn" id="sClear">Clear solves</button><button class="btn bad" id="sDel">Delete session</button></div><p class="empty" id="sMsg">Times are saved on this device only.</p>',
+   function(el){el.querySelector('#sName').oninput=function(){s.name=this.value||'Session';saveT();renderSessions();};
+     el.querySelector('#sCopy').onclick=function(){var vals=s.solves.map(val);var t=s.name+' · '+EV[s.ev].name+'\nSolves: '+s.solves.length+'\nBest: '+fmtMs(minOf(vals))+'  Best ao5: '+fmtMs(minOf(rolling(vals,5)))+'  Best ao12: '+fmtMs(minOf(rolling(vals,12)))+'\n\n'+s.solves.map(function(x,k){return (k+1)+'. '+fmtS(x)+'   '+x.s;}).join('\n');
+       copyText(t,function(ok){el.querySelector('#sMsg').textContent=ok?'Copied. Paste it anywhere.':'Copy is blocked here. Try on another browser.';});};
+     el.querySelector('#sClear').onclick=function(){if(this.dataset.sure){s.solves=[];saveT();renderStats();resetDisplay();closeDlg();}else{this.dataset.sure=1;this.textContent='Tap again to clear';}};
+     el.querySelector('#sDel').onclick=function(){if(TS.sessions.length<2){el.querySelector('#sMsg').textContent='You need at least one session.';return;}
+       if(this.dataset.sure){TS.sessions.splice(TS.cur,1);TS.cur=0;saveT();newScr();renderStats();resetDisplay();closeDlg();}else{this.dataset.sure=1;this.textContent='Tap again to delete';}};});};
+document.getElementById('tSetBtn').onclick=function(){
+  var ck=function(id,on){return '<input type="checkbox" id="'+id+'"'+(on?' checked':'')+'>';};
+  openDlg('<div class="row sp"><h3>Timer settings</h3><button class="x" data-close aria-label="Close">×</button></div><div class="set">'+
+   '<label for="oInsp">WCA inspection<small>15 seconds. Starting after 15 s is +2, after 17 s is DNF.</small></label>'+ck('oInsp',TSET.insp)+
+   '<label for="oVoice">Voice at 8 s and 12 s<small>Like a judge calling the time.</small></label>'+ck('oVoice',TSET.voice)+
+   '<label for="oHold">Hold time<small>How long to hold before it turns green.</small></label><select id="oHold"><option value="0">None</option><option value="300">0.3 s</option><option value="550">0.55 s (Stackmat)</option></select>'+
+   '<label for="oUpd">Show time while solving</label><select id="oUpd"><option value="all">Full</option><option value="sec">Seconds only</option><option value="none">Hidden</option></select>'+
+   '<label for="oFocus">Hide everything while solving</label>'+ck('oFocus',TSET.focus)+
+   '<label for="oImg">Scramble picture</label>'+ck('oImg',TSET.img)+
+   '<label for="oInput">Input<small>Type times from a real Stackmat.</small></label><select id="oInput"><option value="timer">Timer</option><option value="typing">Typing</option></select>'+
+   '</div><div class="row sp"><span class="empty">Saved automatically.</span><button class="btn pri" data-close>Done</button></div>',
+   function(el){el.querySelector('#oHold').value=String(TSET.hold);el.querySelector('#oUpd').value=TSET.update;el.querySelector('#oInput').value=TSET.input;
+     var upd=function(){TSET.insp=el.querySelector('#oInsp').checked;TSET.voice=el.querySelector('#oVoice').checked;TSET.hold=+el.querySelector('#oHold').value;TSET.update=el.querySelector('#oUpd').value;
+       TSET.focus=el.querySelector('#oFocus').checked;TSET.img=el.querySelector('#oImg').checked;var inp=el.querySelector('#oInput').value;var ch=inp!==TSET.input;TSET.input=inp;S('tset',TSET);paintScr();if(ch)applyInput();else setTS('idle');};
+     el.querySelectorAll('input,select').forEach(function(x){x.onchange=upd;});});};
+
+/* ---------- compete ---------- */
+(function(){var E=[['3x3x3 Cube','Average of 5'],['2x2x2 Cube','Average of 5'],['4x4x4 Cube','Average of 5'],['5x5x5 Cube','Average of 5'],['6x6x6 Cube','Mean of 3'],['7x7x7 Cube','Mean of 3'],
+ ['3x3x3 Blindfolded','Best of 3'],['3x3x3 Fewest Moves','Mean of 3 (1 hour each)'],['3x3x3 One-Handed','Average of 5'],['Clock','Average of 5 · leaves 25 July 2027'],['Megaminx','Average of 5'],['Pyraminx','Average of 5'],
+ ['Skewb','Average of 5'],['Square-1','Average of 5'],['4x4x4 Blindfolded','Best of 3'],['5x5x5 Blindfolded','Best of 3'],['3x3x3 Multi-Blind','Best of 1 to 3 · 1 hour']];
+ document.getElementById('evGrid').innerHTML=E.map(function(e){return '<div class="ev'+(e[0]==='Clock'?' leave':'')+'"><b>'+e[0]+'</b><span>'+e[1]+'</span></div>';}).join('');})();
+
+/* ---------- upgrade ---------- */
+(function(){
+var SV=Solver;
+var U_STEPS=[
+ {id:'cross',n:1,name:'Cross',short:'White cross',
+  now:{title:'Daisy, then cross',how:'Make a daisy of white edges around the yellow center. Match each petal with its center, then turn that face twice to drop it down.',algs:[],moves:11},
+  ups:[{v:'direct',title:'Cross on the bottom, no daisy',how:'Put the white edges straight into the bottom. Plan the whole cross during the 15 seconds of inspection so you never stop.',algs:[],moves:8,tip:'Good target: 8 moves or fewer, under 4 seconds.'}]},
+ {id:'corners',n:2,name:'White corners',short:'Corners',
+  now:{title:'Repeat R U R\' U\'',how:'Put the corner above its spot and repeat R U R\' U\' until white faces down. Takes 1, 3 or 5 times.',algs:[['Righty',"R U R' U'"],['Lefty',"L' U' L U"]],moves:54},
+  ups:[{v:'fast',title:'3-move inserts',how:'Look where white faces. Right: R U R\'. Front: F\' U\' F. Up: R U2 R\' U\' R U R\'. One go per corner.',ids:['p1','p2','p9'],moves:17},
+       {v:'pairs',title:'Pair it with its edge (F2L)',how:'Join each corner with its second-layer edge and put both in together. This replaces white corners and the second layer.',ids:['p1','p3','p5','p9','p13'],moves:27,both:true}]},
+ {id:'middle',n:3,name:'Second layer',short:'Middle edges',
+  now:{title:'Edge right, edge left',how:'Find a top edge with no yellow, match it with its center, then send it right or left.',algs:[['Edge to the right',"U R U' R' U' F' U F"],['Edge to the left',"U' L' U L U F U' F'"]],moves:36},
+  ups:[{v:'pairs',title:'F2L pairs',how:'Do the corners and edges together, 4 pairs in total. The biggest time saver of all.',ids:['p1','p2','p3','p4','p5','p6','p7','p8','p9','p10','p11','p12','p13','p14'],moves:27,both:true}]},
+ {id:'ycross',n:4,name:'Yellow cross',short:'Cross on top',
+  now:{title:'One algorithm, repeat',how:'Dot: do it once to get an L. L: hold it at the back-left, do it to get a line. Line: hold it left to right, do it again.',algs:[['Yellow cross',"F R U R' U' F'"]],moves:10},
+  ups:[{v:'one',title:'One algorithm for each shape',how:'Line, L and dot each get their own algorithm, so you never repeat.',ids:['line','lsh','dot'],moves:7}]},
+ {id:'ytop',n:5,name:'Yellow top',short:'All yellow',
+  now:{title:'Match, place, then twist',how:'J Perm\'s order: match the yellow edges with Sune, place the corners with Niklas, then flip the cube and twist each corner with R U R\' U\'.',algs:[['Match edges',"R U R' U R U2 R' U"],['Place corners (Niklas)',"U R U' L' U R' U' L"],['Twist, cube flipped',"R U R' U'"]],moves:55,note:'This covers the whole beginner last layer.'},
+  ups:[{v:'sune',title:'Sune until done',how:'Keep yellow on top. Hold the case the right way and do Sune or Antisune. Look again, repeat.',ids:['sune','anti'],moves:13},
+       {v:'7',title:'7 algorithms, one look',how:'Each corner case has its own algorithm, so the top is always yellow in one go.',ids:['sune','anti','hc','pi','uc','tc','lc'],moves:9}]},
+ {id:'pll',n:6,name:'Last swaps',short:'Corners, edges',
+  now:{title:'Part of the beginner top',how:'The beginner method moves the corners and edges before twisting (step 5), so there is no separate step.',algs:[],moves:0},
+  ups:[{v:'ap',title:'A-perm and U-perms',how:'Corners with the A-perm (headlights at the back), then edges with Ua or Ub.',ids:['aa','ua','ub'],moves:22},
+       {v:'2look',title:'Full 2-look PLL',how:'Add A backwards, Y-perm, H-perm and Z-perm so every case takes one algorithm per look.',ids:['aa','ab','yp','ua','ub','hp','zp'],moves:18}]}
+];
+var OPTS=[
+ {id:'cross',name:'Cross',vals:[['daisy','Daisy'],['direct','No daisy']]},
+ {id:'corners',name:'White corners',vals:[['beg','R U R\' U\''],['fast','3-move'],['pairs','F2L pairs']]},
+ {id:'middle',name:'Second layer',vals:[['beg','Edge algs'],['pairs','F2L pairs']]},
+ {id:'ycross',name:'Yellow cross',vals:[['beg','Repeat 1 alg'],['one','1 alg per shape']]},
+ {id:'ytop',name:'Yellow top',vals:[['beg','Twist (flip)'],['sune','Sune'],['7','7 algs']]},
+ {id:'pll',name:'Last swaps',vals:[['beg','Beginner'],['ap','A + U-perms'],['2look','2-look PLL']]}
+];
+var PRESETS={beg:{name:'Beginner (J Perm)',o:{cross:'daisy',corners:'beg',middle:'beg',ycross:'beg',ytop:'beg',pll:'beg'}},
+ plus:{name:'Beginner Plus',o:{cross:'direct',corners:'fast',middle:'beg',ycross:'one',ytop:'sune',pll:'ap'}},
+ full:{name:'Full upgrade',o:{cross:'direct',corners:'pairs',middle:'pairs',ycross:'one',ytop:'7',pll:'2look'}}};
+var STAGE={daisy:'Daisy',cross:'White cross',fcross:'Cross',corners:'White corners',fbcorners:'White corners',middle:'Second layer',f2l:'F2L pairs',bcross:'Yellow cross',oll1:'Yellow cross',
+ lledges:'Match yellow edges',llcorners:'Place yellow corners',lltwist:'Twist yellow corners',fboll:'Yellow top',oll2:'Yellow top',fbpll1:'Swap corners',pll1:'Swap corners',fbpll2:'Swap edges',pll2:'Swap edges'};
+var GROUP={daisy:'Cross',cross:'Cross',fcross:'Cross',corners:'First two layers',fbcorners:'First two layers',middle:'First two layers',f2l:'First two layers',bcross:'Yellow cross',oll1:'Yellow cross'};
+var uo=Object.assign({},PRESETS.beg.o,S('uopts')||{}),uStep=S('ustep')||'corners';
+function toSolver(o){return {cross:o.cross,f2l:o.middle==='pairs'?'pairs':'layers',corners:o.corners==='fast'?'fast':'beg',ycross:o.ycross,oll:o.ytop,pll:o.pll};}
+function link(o,changed){
+  if(changed==='corners'){if(o.corners==='pairs')o.middle='pairs';else if(o.middle==='pairs')o.middle='beg';}
+  if(changed==='middle'){if(o.middle==='pairs')o.corners='pairs';else if(o.corners==='pairs')o.corners='beg';}
+  if(changed==='ytop'){if(o.ytop==='beg')o.pll='beg';else if(o.pll==='beg')o.pll='ap';}
+  if(changed==='pll'){if(o.pll==='beg')o.ytop='beg';else if(o.ytop==='beg')o.ytop='sune';}
+}
+function cnt(m){return m.split(' ').filter(function(x){return x&&!/^[xyz]/.test(x);}).length;}
+function total(r){return r.segments.reduce(function(a,g){return a+cnt(g.moves);},0);}
+
+/* step browser */
+function algRow(a){
+  if(a.id){var A0=BY[a.id];return '<div class="uAlg"><div>'+caseSVG(A0)+'</div><div><div class="nm">'+A0.name+'</div><div class="mv">'+algHTML(A0.alg)+'</div></div><button class="small" data-uw="'+a.id+'">Watch</button></div>';}
+  return '<div class="uAlg nopic"><div><div class="nm">'+a[0]+'</div><div class="mv">'+a[1]+'</div></div><button class="small" data-ub="'+esc(a[0])+'|'+a[1]+'">Watch</button></div>';
+}
+function renderSteps(){
+  document.getElementById('uSteps').innerHTML=U_STEPS.map(function(s){return '<button class="uStep" role="tab" data-us="'+s.id+'" aria-selected="'+(s.id===uStep)+'"><span class="n">STEP '+s.n+'</span><b>'+s.name+'</b><span>'+(s.now.moves?'≈ '+s.now.moves+' moves now':'In step 5 now')+'</span></button>';}).join('');
+  var s=U_STEPS.filter(function(x){return x.id===uStep;})[0];
+  var now='<div class="uCard now"><span class="tag">What you do now</span><h3>'+s.now.title+'</h3><p>'+s.now.how+'</p>'+(s.now.algs.length?'<div class="uAlgs">'+s.now.algs.map(algRow).join('')+'</div>':'')+
+    '<div class="uMeta">'+(s.now.moves?'<span>≈ '+s.now.moves+' moves</span>':'')+(s.now.note?'<span>'+s.now.note+'</span>':'')+'</div></div>';
+  var ups=s.ups.map(function(u,i){var save=s.now.moves?(u.both?(s.id==='corners'?54+36:54+36)-u.moves:s.now.moves-u.moves):0;
+    return '<div class="uCard up"><span class="tag">Upgrade '+(s.ups.length>1?(i+1)+' of '+s.ups.length:'')+'</span><h3>'+u.title+'</h3><p>'+u.how+'</p>'+
+      (u.ids&&u.ids.length?'<div class="uAlgs">'+u.ids.map(function(id){return algRow({id:id});}).join('')+'</div>':'')+
+      (u.tip?'<p>'+u.tip+'</p>':'')+
+      '<div class="uMeta"><span>≈ '+u.moves+' moves'+(u.both?' for both steps':'')+'</span>'+(save>0?'<span class="save">saves ≈ '+save+' moves</span>':'')+'</div>'+
+      '<div class="row"><button class="btn pri" data-try="'+s.id+'|'+u.v+'">Try it in the simulator</button>'+(u.ids&&u.ids.length?'<button class="btn" data-learn="'+u.ids.join(',')+'">Add to my flashcards</button>':'')+'</div></div>';}).join('');
+  document.getElementById('uPanel').innerHTML='<div class="uCol">'+now+'</div><div class="uCol">'+ups+'</div>';
+}
+document.getElementById('uSteps').addEventListener('click',function(e){var b=e.target.closest('[data-us]');if(!b)return;uStep=b.dataset.us;S('ustep',uStep);renderSteps();});
+document.getElementById('uPanel').addEventListener('click',function(e){
+  var w=e.target.closest('[data-uw]');if(w){openPlayer(BY[w.dataset.uw]);return;}
+  var b=e.target.closest('[data-ub]');if(b){var p=b.dataset.ub.split('|');openPlayer({name:p[0],alg:p[1]});return;}
+  var t=e.target.closest('[data-try]');if(t){var q=t.dataset.try.split('|');uo[q[0]]=q[1];link(uo,q[0]);S('uopts',uo);renderOpts();solveNow();document.getElementById('uSimWrap').scrollIntoView({behavior:'smooth',block:'start'});return;}
+  var l=e.target.closest('[data-learn]');if(l){l.dataset.learn.split(',').forEach(function(id){if(status(id)!=='know')ST[id]='learn';});S('status',ST);refreshCounts();renderAlgs();l.textContent='Added to flashcards';l.disabled=true;}
+});
+
+/* method builder */
+function renderOpts(){
+  document.getElementById('uPresets').innerHTML=Object.keys(PRESETS).map(function(k){var on=JSON.stringify(PRESETS[k].o)===JSON.stringify(uo);return '<button class="chip" data-pre="'+k+'" aria-pressed="'+on+'">'+PRESETS[k].name+'</button>';}).join('');
+  document.getElementById('uOpts').innerHTML=OPTS.map(function(o,i){return '<div class="uOpt"><div class="lbl">'+(i+1)+'. '+o.name+'</div><div class="seg" role="group" aria-label="'+o.name+'">'+o.vals.map(function(v){return '<button data-o="'+o.id+'" data-v="'+v[0]+'" aria-pressed="'+(uo[o.id]===v[0])+'">'+v[1]+'</button>';}).join('')+'</div></div>';}).join('');
+}
+document.getElementById('uOpts').addEventListener('click',function(e){var b=e.target.closest('[data-o]');if(!b)return;uo[b.dataset.o]=b.dataset.v;link(uo,b.dataset.o);S('uopts',uo);renderOpts();solveNow();});
+document.getElementById('uPresets').addEventListener('click',function(e){var b=e.target.closest('[data-pre]');if(!b)return;uo=Object.assign({},PRESETS[b.dataset.pre].o);S('uopts',uo);renderOpts();solveNow();});
+
+/* scramble */
+var uScr=scr333();
+function showScr(){document.getElementById('uScrTxt').textContent=uScr;}
+document.getElementById('uNewScr').onclick=function(){uScr=scr333();showScr();solveNow();};
+document.getElementById('uOwn').onclick=function(){var r=document.getElementById('uOwnRow');r.hidden=!r.hidden;if(!r.hidden)document.getElementById('uOwnIn').focus();};
+function useOwn(){var v=document.getElementById('uOwnIn').value.trim().replace(/’/g,"'").replace(/\s+/g,' '),err=document.getElementById('uErr');
+  try{if(!v)throw 0;var t=C.parse(v);if(t.some(function(x){return !/^[RLUDFB]$/.test(x.face);}))throw 0;}catch(e){err.hidden=false;err.textContent='Use only R L U D F B, with \' or 2. Example: R U2 F\' D';return;}
+  err.hidden=true;uScr=v;showScr();document.getElementById('uOwnRow').hidden=true;solveNow();}
+document.getElementById('uOwnGo').onclick=useOwn;
+document.getElementById('uOwnIn').addEventListener('keydown',function(e){if(e.key==='Enter')useOwn();});
+
+/* solve + player */
+var sim={segs:[],flat:[],i:0,playing:false,speed:2,token:0,view:null};
+function uView(){if(!sim.view)sim.view=View(document.getElementById('uCanvas'));return sim.view;}
+function solveFor(o){return SV.solveCustom(C.apply(C.newCube(),uScr),toSolver(o));}
+function solveNow(){
+  var r;try{r=solveFor(uo);}catch(e){document.getElementById('uSay').textContent='Something went wrong with this scramble. Try a new one.';return;}
+  stopSim();sim.segs=r.segments;sim.flat=[];sim.segs.forEach(function(g,si){g.moves.split(' ').filter(Boolean).forEach(function(m){sim.flat.push({m:m,s:si});});});
+  sim.i=0;var v=uView();v.fit();v.set(C.apply(C.newCube(),uScr));
+  renderTimeline();paintSim();renderCompare(r);
+}
+function segAt(i){return i<sim.flat.length?sim.flat[i].s:sim.segs.length;}
+function cubeAtI(i){var c=C.apply(C.newCube(),uScr);for(var k=0;k<i;k++)C.apply(c,sim.flat[k].m);return c;}
+function paintSim(){
+  var n=sim.flat.length,si=segAt(sim.i),g=sim.segs[si];
+  document.getElementById('uStage').textContent=si>=sim.segs.length?'Solved':STAGE[g.stage]||g.stage;
+  document.getElementById('uSay').textContent=si>=sim.segs.length?'Done in '+cntAll()+' moves. Try another method on the same scramble to compare.':g.label;
+  var start=0;for(var k=0;k<sim.flat.length&&sim.flat[k].s<si;k++)start=k+1;
+  document.getElementById('uMoves').innerHTML=g?'<span class="ch">'+g.moves.split(' ').filter(Boolean).map(function(m,j){var idx=start+j;return '<button data-ui="'+idx+'" class="'+(idx<sim.i?'done':idx===sim.i?'cur':'')+'">'+m+'</button>';}).join('')+'</span>':'';
+  document.getElementById('uPlayBtn').textContent=sim.playing?'Pause':(sim.i>=n?'Replay':'Play');
+  document.getElementById('uCount').textContent='Move '+Math.min(sim.i,n)+' of '+n;
+  document.querySelectorAll('#uSpeed button').forEach(function(b){b.setAttribute('aria-pressed',+b.dataset.s===sim.speed);});
+  var grp=groups(),gi=-1;grp.forEach(function(x,j){if(sim.i>=x.start&&sim.i<x.end)gi=j;});
+  document.querySelectorAll('#uTimeline .uTl').forEach(function(b,j){b.setAttribute('aria-current',j===gi);b.classList.toggle('done',sim.i>=grp[j].end);});
+}
+function cntAll(){return sim.flat.filter(function(x){return !/^[xyz]/.test(x.m);}).length;}
+function groups(){var out=[],cur=null;sim.flat.forEach(function(x,k){var name=STAGE[sim.segs[x.s].stage];if(!cur||cur.name!==name){cur={name:name,start:k,end:k+1,moves:0};out.push(cur);}cur.end=k+1;if(!/^[xyz]/.test(x.m))cur.moves++;});return out;}
+function renderTimeline(){document.getElementById('uTimeline').innerHTML=groups().map(function(g,j){return '<button class="uTl" data-ug="'+g.start+'"><span>'+g.name+'</span><b>'+g.moves+' moves</b></button>';}).join('');}
+document.getElementById('uTimeline').addEventListener('click',function(e){var b=e.target.closest('[data-ug]');if(!b||uView().busy)return;stopSim();sim.i=+b.dataset.ug;uView().set(cubeAtI(sim.i));paintSim();});
+document.getElementById('uMoves').addEventListener('click',function(e){var b=e.target.closest('[data-ui]');if(!b||uView().busy)return;stopSim();sim.i=+b.dataset.ui;uView().set(cubeAtI(sim.i));paintSim();});
+function uDur(){return 480/sim.speed;}
+function fwd(){if(sim.i>=sim.flat.length||uView().busy)return Promise.resolve(false);var m=sim.flat[sim.i].m;return uView().turn(m,uDur()).then(function(){sim.i++;paintSim();return true;});}
+function back(){if(sim.i<=0||uView().busy)return Promise.resolve(false);sim.i--;paintSim();return uView().turn(C.invert(sim.flat[sim.i].m),uDur()).then(function(){paintSim();return true;});}
+function stopSim(){sim.playing=false;sim.token++;}
+function playSim(untilSeg){
+  if(sim.i>=sim.flat.length){sim.i=0;uView().set(cubeAtI(0));}
+  sim.playing=true;var tok=++sim.token;paintSim();
+  (function loop(){if(tok!==sim.token)return;
+    if(sim.i>=sim.flat.length||(untilSeg!=null&&segAt(sim.i)!==untilSeg)){sim.playing=false;paintSim();return;}
+    var newSeg=sim.i>0&&segAt(sim.i)!==segAt(sim.i-1);
+    (newSeg&&untilSeg==null?wait(Math.min(900,350+300/sim.speed)):Promise.resolve()).then(function(){if(tok!==sim.token)return;fwd().then(function(){wait(60/sim.speed).then(loop);});});
+  })();
+}
+document.getElementById('uPlayBtn').onclick=function(){if(!sim.flat.length)return solveNow();if(sim.playing){stopSim();paintSim();}else playSim();};
+document.getElementById('uNextM').onclick=function(){stopSim();fwd();};
+document.getElementById('uPrevM').onclick=function(){stopSim();back();};
+document.getElementById('uNextS').onclick=function(){if(uView().busy)return;stopSim();if(sim.i<sim.flat.length)playSim(segAt(sim.i));};
+document.getElementById('uPrevS').onclick=function(){if(uView().busy)return;stopSim();var s=segAt(Math.max(0,sim.i-1)),k=sim.i;
+  while(k>0&&segAt(k-1)===s)k--; if(k===sim.i&&k>0){s=segAt(k-1);while(k>0&&segAt(k-1)===s)k--;} sim.i=k;uView().set(cubeAtI(k));paintSim();};
+document.getElementById('uSpeed').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;sim.speed=+b.dataset.s;paintSim();});
+document.getElementById('uSolve').onclick=function(){solveNow();document.getElementById('uPlay').scrollIntoView({behavior:'smooth',block:'nearest'});setTimeout(function(){playSim();},350);};
+
+/* compare */
+function renderCompare(mine){
+  var rb,rf;try{rb=solveFor(PRESETS.beg.o);rf=solveFor(PRESETS.full.o);}catch(e){return;}
+  var list=[['Beginner',total(rb),''],['Your method',total(mine),'you'],['Full upgrade',total(rf),'full']],mx=Math.max(list[0][1],list[1][1],list[2][1]);
+  var tps=2.8;
+  document.getElementById('uCompare').innerHTML='<div class="uCmp">'+list.map(function(x){return '<div class="uTot '+x[2]+'"><span>'+x[0]+'</span><div class="ubar"><i style="width:'+(100*x[1]/mx)+'%"></i></div><b>'+x[1]+' moves</b></div>';}).join('')+
+   '<p class="note">At your speed now (about 3 moves a second) that is roughly <b>'+Math.round(list[0][1]/tps)+' s</b> with the beginner method and <b>'+Math.round(list[1][1]/tps)+' s</b> with your mix. Fewer moves is the fastest way to get faster.</p></div>';
+}
+function renderTotals(){document.getElementById('uTotals').innerHTML=[['Beginner',166,''],['Beginner Plus',103,'you'],['Full upgrade',70,'full']].map(function(x){return '<div class="uTot '+x[2]+'"><span>'+x[0]+'</span><div class="ubar"><i style="width:'+(100*x[1]/166)+'%"></i></div><b>≈ '+x[1]+' moves</b></div>';}).join('')+'<p class="empty" style="margin:0">Average moves per solve, measured on 100 scrambles.</p>';}
+
+renderTotals();renderSteps();renderOpts();showScr();
+var started=false;
+window.upgradeShown=function(){if(started){uView().fit();return;}started=true;solveNow();};
+})();
+
+/* ---------- boot ---------- */
+refreshCounts();renderAlgs();renderPrChips();renderSessions();newScr();renderStats();applyInput();
+var h0=(location.hash||'').slice(1);go(TABS.indexOf(h0)>=0?h0:(S('tab')||'learn'));setTimeout(function(){window.scrollTo(0,0);},60);
+})();
+</script>
+
+</body></html>
