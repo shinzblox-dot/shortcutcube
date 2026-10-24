@@ -1937,6 +1937,16 @@ var Solver = (function (C) {
     if (k === 4) throw new Error('flip twist: not solved');
     if (k) act(ctx, 'lltwist', 'Turn the bottom layer until every side matches.', DT[k]);
   }
+  function twistOnly(ctx) {
+    act(ctx, 'lltwist', 'Flip the whole cube upside down: white on top, yellow on the bottom.', 'z2');
+    for (var i = 0; i < 4; i++) {
+      var n = 0;
+      while (C.sticker(ctx.cube, [1, -1, 1], [0, -1, 0]) !== 'y') { C.apply(ctx.cube, ALG.pop); n++; if (n > 5) throw new Error('twist loop'); }
+      if (n) ctx.segs.push({ stage: 'lltwist', label: 'Corner ' + (i + 1) + " at the bottom front-right: repeat R U R' U' until yellow faces down (" + n + ' times).', moves: repeat(ALG.pop, n) });
+      if (i < 3) act(ctx, 'lltwist', n ? 'Turn only the bottom layer to bring the next corner to the front-right.' : 'Corner ' + (i + 1) + ' already has yellow down. Turn only the bottom layer to the next one.', 'D');
+    }
+    act(ctx, 'lltwist', 'The whole bottom is yellow. Flip the cube back: yellow on top.', 'z2');
+  }
   var UA_RU = { id: 'ua', name: 'Ua', moves: "R U' R U R U R U' R' U' R2" }, UB_RU = { id: 'ub', name: 'Ub', moves: "R2 U R U R' U' R' U' R' U R'" };
   var AB = { id: 'ab', name: 'A-perm backwards', moves: "R2 B2 R F R' B2 R F' R" };
   function plPLL(ctx, cornerSet, edgeSet, stageC, stageE) {
@@ -1968,10 +1978,12 @@ var Solver = (function (C) {
     if (o.f2l === 'pairs') f2lPairs(ctx);
     else { if (o.corners === 'fast') fastCorners(ctx); else whiteCorners(ctx); middleLayer(ctx); }
     if (o.ycross === 'beg') begCross(ctx); else llCross(ctx, 'oll1');
-    if (o.oll === 'beg') { llEdges(ctx); llCorners(ctx); flipTwist(ctx); }
+    var pll = o.pll || 'beg';
+    if (o.oll === 'beg' && pll === 'beg') { llEdges(ctx); llCorners(ctx); flipTwist(ctx); }
     else {
-      if (o.oll === 'sune') fbOLL(ctx); else oll2(ctx);
-      if (o.pll === 'ap') plPLL(ctx, [PLL1[0]], [UA_RU, UB_RU], 'fbpll1', 'fbpll2');
+      if (o.oll === 'beg') twistOnly(ctx); else if (o.oll === 'sune') fbOLL(ctx); else oll2(ctx);
+      if (pll === 'beg') { llEdges(ctx); llCorners(ctx); flipTwist(ctx); }
+      else if (pll === 'ap') plPLL(ctx, [PLL1[0]], [UA_RU, UB_RU], 'fbpll1', 'fbpll2');
       else plPLL(ctx, [PLL1[0], AB, PLL1[1]], [UA_RU, UB_RU, PLL2[2], PLL2[3]], 'pll1', 'pll2');
     }
     if (!C.solved(ctx.cube)) throw new Error('not solved');
@@ -2568,11 +2580,11 @@ var U_STEPS=[
   now:{title:'One algorithm, repeat',how:'Dot: do it once to get an L. L: hold it at the back-left, do it to get a line. Line: hold it left to right, do it again.',algs:[['Yellow cross',"F R U R' U' F'"]],moves:10},
   ups:[{v:'one',title:'One algorithm for each shape',how:'Line, L and dot each get their own algorithm, so you never repeat.',ids:['line','lsh','dot'],moves:7}]},
  {id:'ytop',n:5,name:'Yellow top',short:'All yellow',
-  now:{title:'Match, place, then twist',how:'J Perm\'s order: match the yellow edges with Sune, place the corners with Niklas, then flip the cube and twist each corner with R U R\' U\'.',algs:[['Match edges',"R U R' U R U2 R' U"],['Place corners (Niklas)',"U R U' L' U R' U' L"],['Twist, cube flipped',"R U R' U'"]],moves:55,note:'This covers the whole beginner last layer.'},
+  now:{title:'Flip and twist',how:'Flip the cube so yellow is on the bottom. Hold a corner at the bottom front-right and repeat R U R\' U\' until yellow faces down. Turn only the bottom layer to the next corner. Flip back at the end.',algs:[['Twist, cube flipped',"R U R' U'"]],moves:26},
   ups:[{v:'sune',title:'Sune until done',how:'Keep yellow on top. Hold the case the right way and do Sune or Antisune. Look again, repeat.',ids:['sune','anti'],moves:13},
        {v:'7',title:'7 algorithms, one look',how:'Each corner case has its own algorithm, so the top is always yellow in one go.',ids:['sune','anti','hc','pi','uc','tc','lc'],moves:9}]},
  {id:'pll',n:6,name:'Last swaps',short:'Corners, edges',
-  now:{title:'Part of the beginner top',how:'The beginner method moves the corners and edges before twisting (step 5), so there is no separate step.',algs:[],moves:0},
+  now:{title:'Match edges, place corners',how:'J Perm\'s beginner swaps: match the yellow edges with Sune, then place the corners with Niklas. These moves untwist the yellow corners, so the twist is done again at the end.',algs:[['Match edges',"R U R' U R U2 R' U"],['Place corners (Niklas)',"U R U' L' U R' U' L"]],moves:30,note:'With beginner swaps, the yellow top step always runs last. A + U-perms keep the top yellow.'},
   ups:[{v:'ap',title:'A-perm and U-perms',how:'Corners with the A-perm (headlights at the back), then edges with Ua or Ub.',ids:['aa','ua','ub'],moves:22},
        {v:'2look',title:'Full 2-look PLL',how:'Add A backwards, Y-perm, H-perm and Z-perm so every case takes one algorithm per look.',ids:['aa','ab','yp','ua','ub','hp','zp'],moves:18}]}
 ];
@@ -2584,7 +2596,8 @@ var OPTS=[
  {id:'ytop',name:'Yellow top',vals:[['beg','Twist (flip)'],['sune','Sune'],['7','7 algs']]},
  {id:'pll',name:'Last swaps',vals:[['beg','Beginner'],['ap','A + U-perms'],['2look','2-look PLL']]}
 ];
-var PRESETS={beg:{name:'Beginner (J Perm)',o:{cross:'daisy',corners:'beg',middle:'beg',ycross:'beg',ytop:'beg',pll:'beg'}},
+var PRESETS={mine:{name:'My method',o:{cross:'direct',corners:'fast',middle:'beg',ycross:'one',ytop:'beg',pll:'beg'}},
+ beg:{name:'Beginner (J Perm)',o:{cross:'daisy',corners:'beg',middle:'beg',ycross:'beg',ytop:'beg',pll:'beg'}},
  plus:{name:'Beginner Plus',o:{cross:'direct',corners:'fast',middle:'beg',ycross:'one',ytop:'sune',pll:'ap'}},
  full:{name:'Full upgrade',o:{cross:'direct',corners:'pairs',middle:'pairs',ycross:'one',ytop:'7',pll:'2look'}}};
 var STAGE={daisy:'Daisy',cross:'White cross',fcross:'Cross',corners:'White corners',fbcorners:'White corners',middle:'Second layer',f2l:'F2L pairs',bcross:'Yellow cross',oll1:'Yellow cross',
@@ -2595,8 +2608,6 @@ function toSolver(o){return {cross:o.cross,f2l:o.middle==='pairs'?'pairs':'layer
 function link(o,changed){
   if(changed==='corners'){if(o.corners==='pairs')o.middle='pairs';else if(o.middle==='pairs')o.middle='beg';}
   if(changed==='middle'){if(o.middle==='pairs')o.corners='pairs';else if(o.corners==='pairs')o.corners='beg';}
-  if(changed==='ytop'){if(o.ytop==='beg')o.pll='beg';else if(o.pll==='beg')o.pll='ap';}
-  if(changed==='pll'){if(o.pll==='beg')o.ytop='beg';else if(o.ytop==='beg')o.ytop='sune';}
 }
 function cnt(m){return m.split(' ').filter(function(x){return x&&!/^[xyz]/.test(x);}).length;}
 function total(r){return r.segments.reduce(function(a,g){return a+cnt(g.moves);},0);}
